@@ -1,0 +1,11 @@
+{{ define "yield" }}
+<form action="/register" method="post">
+  <label for="Username">Username:</label>
+  <input type="text" id="Username" name="username"><br>
+  <label for="Password">Password:</label>
+  <input type="password" id="Password" name="password"><br>
+  <label for="Confirm_Password">Confirm Password:</label>
+  <input type="password" id="Confirm_Password" name="confirm_password"><br>
+  <input type="submit" value="Submit">
+</form>
+{{ end }}
