@@ -1,11 +1,4 @@
 {{ define "yield" }}
-<h1>Welcome{{ if . }}, {{.}}{{ end }}!</h1>
-
-{{ if . }}
-<a href="/logout">logout</a>
-{{ else }}
-<a href="/login">login</a>
-| <a href="/register">sign up</a>
-{{ end }}
+<h1>Welcome{{ with .User }}, {{ .Username }}{{ end }}!</h1>
 
 {{ end }}

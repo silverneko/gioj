@@ -14,7 +14,7 @@ type AuthCredential struct {
 }
 
 func LoginHandler(w http.ResponseWriter, req * http.Request) {
-  render("login_form.html", w, "")
+  render("login_form.html", w, req, "")
 }
 
 func AuthHandler(w http.ResponseWriter, req * http.Request) {
@@ -24,18 +24,18 @@ func AuthHandler(w http.ResponseWriter, req * http.Request) {
 
   db := DBSession{DB.Copy()}
   defer db.Close()
-  var result map[string]string
+  var result User
   err := db.C("users").Find(bson.M{"username": username}).One(&result)
   if err != nil {
     /* User not found */
-    render("login_form.html", w, "", "Username not found!")
+    render("login_form.html", w, req, "", "Username not found!")
     return
   }
-  hashed := result["hashed_password"]
+  hashed := result.Hashed_password
   ok := bcrypt.CompareHashAndPassword([]byte(hashed), []byte(password))
   if ok != nil {
     /* password mismatch */
-    render("login_form.html", w, "", "Wrong password!")
+    render("login_form.html", w, req, "", "Wrong password!")
     return
   }
 
@@ -53,7 +53,7 @@ func LogoutHandler(w http.ResponseWriter, req * http.Request) {
 }
 
 func RegisterHandler(w http.ResponseWriter, req * http.Request) {
-  render("register_form.html", w, "")
+  render("register_form.html", w, req, "")
 }
 
 func RegisterHandlerP(w http.ResponseWriter, req * http.Request) {
@@ -61,15 +61,15 @@ func RegisterHandlerP(w http.ResponseWriter, req * http.Request) {
   Decode(&a, req)
   username, password, confirm := a.Username, a.Password, a.Confirm_password
   if len(username) < 3 {
-    render("register_form.html", w, "", "Username is too short!")
+    render("register_form.html", w, req, "", "Username is too short!")
     return
   }
   if len(password) < 8 {
-    render("register_form.html", w, "", "Password is too short!")
+    render("register_form.html", w, req, "", "Password is too short!")
     return
   }
   if password != confirm {
-    render("register_form.html", w, "", "Confirm password mismatch!")
+    render("register_form.html", w, req, "", "Confirm password mismatch!")
     return
   }
   hashed, _ := bcrypt.GenerateFromPassword([]byte(password), 10)
@@ -77,7 +77,7 @@ func RegisterHandlerP(w http.ResponseWriter, req * http.Request) {
   defer db.Close()
   err := db.C("users").Insert(bson.M{"username": username, "hashed_password": hashed})
   if err != nil {
-    render("register_form.html", w, "", "Cannot use this username!")
+    render("register_form.html", w, req, "", "Cannot use this username!")
     return
   }
   log.Println("Create user:", username)
