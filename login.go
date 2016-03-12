@@ -21,23 +21,21 @@ func AuthHandler(w http.ResponseWriter, req * http.Request) {
   var a AuthCredential
   Decode(&a, req)
   username, password := a.Username, a.Password
+
   db := DBSession{DB.Copy()}
   defer db.Close()
-
   var result map[string]string
   err := db.C("users").Find(bson.M{"username": username}).One(&result)
   if err != nil {
     /* User not found */
-    log.Println(err)
-    http.Redirect(w, req, "/login", http.StatusFound)
+    render("login_form.html", w, "", "Username not found!")
     return
   }
   hashed := result["hashed_password"]
   ok := bcrypt.CompareHashAndPassword([]byte(hashed), []byte(password))
   if ok != nil {
     /* password mismatch */
-    log.Println(ok)
-    http.Redirect(w, req, "/login", http.StatusFound)
+    render("login_form.html", w, "", "Wrong password!")
     return
   }
 
@@ -62,18 +60,27 @@ func RegisterHandlerP(w http.ResponseWriter, req * http.Request) {
   var a AuthCredential
   Decode(&a, req)
   username, password, confirm := a.Username, a.Password, a.Confirm_password
+  if len(username) < 3 {
+    render("register_form.html", w, "", "Username is too short!")
+    return
+  }
+  if len(password) < 8 {
+    render("register_form.html", w, "", "Password is too short!")
+    return
+  }
   if password != confirm {
-    http.Redirect(w, req, "/register", 302)
+    render("register_form.html", w, "", "Confirm password mismatch!")
     return
   }
   hashed, _ := bcrypt.GenerateFromPassword([]byte(password), 10)
-  dbConnection := DB.Copy()
-  defer dbConnection.Close()
-  err := dbConnection.DB("").C("users").Insert(bson.M{"username": username, "hashed_password": hashed})
+  db := DBSession{DB.Copy()}
+  defer db.Close()
+  err := db.C("users").Insert(bson.M{"username": username, "hashed_password": hashed})
   if err != nil {
-    http.Redirect(w, req, "/register", 302)
+    render("register_form.html", w, "", "Cannot use this username!")
     return
   }
+  log.Println("Create user:", username)
   cookie, _ := cookieJar.Get(req, AuthSession)
   cookie.Values["username"] = username
   cookie.Save(req, w)

@@ -46,6 +46,11 @@ func init() {
   if err != nil {
     log.Fatal("mgo.Dial: ", err)
   }
+
+  err = EnsureDBIndices()
+  if err != nil {
+    log.Fatal("mgo.EnsureIndex: ", err)
+  }
 }
 
 func d(s string) []byte {

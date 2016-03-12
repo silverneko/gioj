@@ -6,7 +6,10 @@
 <body>
 <a href="/">Home</a>
 
-{{ template "yield" . }}
+{{ range .Flash }}
+Flash: {{ . }} <br>
+{{ end }}
+{{ template "yield" .Data }}
 
 </body>
 </html>
