@@ -8,13 +8,14 @@ import (
 )
 
 type AuthCredential struct {
+  Name string	    `schema:"name"`
   Username string   `schema:"username"`
   Password string   `schema:"password"`
   Confirm_password string   `schema:"confirm_password"`
 }
 
 func LoginHandler(w http.ResponseWriter, req * http.Request) {
-  render("login_form.html", w, req, "")
+  render("user/login_form.html", w, req, "")
 }
 
 func AuthHandler(w http.ResponseWriter, req * http.Request) {
@@ -28,14 +29,13 @@ func AuthHandler(w http.ResponseWriter, req * http.Request) {
   err := db.C("users").Find(bson.M{"username": username}).One(&result)
   if err != nil {
     /* User not found */
-    render("login_form.html", w, req, "", "Username not found!")
+    render("user/login_form.html", w, req, "", "Username not found!")
     return
   }
-  hashed := result.Hashed_password
-  ok := bcrypt.CompareHashAndPassword([]byte(hashed), []byte(password))
+  ok := bcrypt.CompareHashAndPassword(result.Hashed_password, []byte(password))
   if ok != nil {
     /* password mismatch */
-    render("login_form.html", w, req, "", "Wrong password!")
+    render("user/login_form.html", w, req, "", "Wrong password!")
     return
   }
 
@@ -53,31 +53,35 @@ func LogoutHandler(w http.ResponseWriter, req * http.Request) {
 }
 
 func RegisterHandler(w http.ResponseWriter, req * http.Request) {
-  render("register_form.html", w, req, "")
+  render("user/register_form.html", w, req, "")
 }
 
 func RegisterHandlerP(w http.ResponseWriter, req * http.Request) {
   var a AuthCredential
   Decode(&a, req)
-  username, password, confirm := a.Username, a.Password, a.Confirm_password
+  name, username, password, confirm := a.Name, a.Username, a.Password, a.Confirm_password
+  if len(name) < 3 {
+    render("user/register_form.html", w, req, "", "Name is too short!")
+    return
+  }
   if len(username) < 3 {
-    render("register_form.html", w, req, "", "Username is too short!")
+    render("user/register_form.html", w, req, "", "Username is too short!")
     return
   }
   if len(password) < 8 {
-    render("register_form.html", w, req, "", "Password is too short!")
+    render("user/register_form.html", w, req, "", "Password is too short!")
     return
   }
   if password != confirm {
-    render("register_form.html", w, req, "", "Confirm password mismatch!")
+    render("user/register_form.html", w, req, "", "Confirm password mismatch!")
     return
   }
   hashed, _ := bcrypt.GenerateFromPassword([]byte(password), 10)
   db := DBSession{DB.Copy()}
   defer db.Close()
-  err := db.C("users").Insert(bson.M{"username": username, "hashed_password": hashed})
+  err := db.C("users").Insert(bson.M{"name": name, "username": username, "hashed_password": hashed})
   if err != nil {
-    render("register_form.html", w, req, "", "Cannot use this username!")
+    render("user/register_form.html", w, req, "", "Cannot use this username!")
     return
   }
   log.Println("Create user:", username)

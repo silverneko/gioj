@@ -1,0 +1,14 @@
+{{ define "yield" }}
+<h1>User: <strong>{{ .User.Username }}</strong></h1>
+<form action="/user/{{.User.Username}}/edit" method="post">
+  <label for="Name">Name:</label>
+  <input type="text" id="Name" name="Name"><br>
+  <label for="New_Password">New Password:</label>
+  <input type="password" id="New_Password" name="New_password"><br>
+  <label for="Confirm_Password">Confirm New Password:</label>
+  <input type="password" id="Confirm_Password" name="Confirm_password"><br>
+  <label for="Password">Old Password:</label>
+  <input type="password" id="Password" name="Old_password"><br>
+  <input type="submit" value="Submit">
+</form>
+{{ end }}

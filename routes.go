@@ -16,6 +16,9 @@ func main() {
   mux.HandleFunc(pat.Get("/logout"), LogoutHandler)
   mux.HandleFunc(pat.Get("/register"), RegisterHandler)
   mux.HandleFunc(pat.Post("/register"), RegisterHandlerP)
+  mux.HandleFuncC(pat.Get("/user/:user"), UserHandler)
+  mux.HandleFuncC(pat.Get("/user/:user/edit"), UserEditHandler)
+  mux.HandleFuncC(pat.Post("/user/:user/edit"), UserEditHandlerP)
 
   http.Handle("/", mux)
   err := http.ListenAndServe(":4000", context.ClearHandler(http.DefaultServeMux))

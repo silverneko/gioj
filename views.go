@@ -10,8 +10,10 @@ var tmpls = make(map[string]*template.Template)
 
 func init() {
   registerTemplate("welcome.html")
-  registerTemplate("login_form.html")
-  registerTemplate("register_form.html")
+  registerTemplate("user/login_form.html")
+  registerTemplate("user/register_form.html")
+  registerTemplate("user/show.html")
+  registerTemplate("user/edit_form.html")
 }
 
 func registerTemplate(name string) {
@@ -33,7 +35,7 @@ func render(name string, w http.ResponseWriter, r *http.Request, d interface{}, 
   })
   if err != nil {
     log.Println(err)
-    http.Error(w, "500", 500)
+    http.Error(w, "500: " + err.Error(), 500)
   }
 }
 

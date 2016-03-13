@@ -27,9 +27,10 @@ func EnsureDBIndices() error {
 }
 
 type User struct {
-  ID string   `bson:"_id"`
+  ID bson.ObjectId   `bson:"_id"`
+  Name string
   Username string
-  Hashed_password string
+  Hashed_password []byte
 }
 
 func CurrentUser(w http.ResponseWriter, r *http.Request) *User {
