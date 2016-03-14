@@ -1,10 +1,16 @@
 package main
 
-func Left(a, _ interface{}) interface{} {
+func left(a, _ interface{}) interface{} {
   return a
 }
 
-func Right(_, b interface{}) interface{} {
+func right(_, b interface{}) interface{} {
   return b
 }
 
+func inRange(x, l, r int) bool {
+  if x < l || r < x {
+    return false
+  }
+  return true
+}
