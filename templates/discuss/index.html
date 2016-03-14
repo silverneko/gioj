@@ -1,0 +1,18 @@
+{{ define "yield" }}
+<h1>Discuss</h1>
+
+<form action="/discuss/new" method="post">
+  <label for="content">msg:</label>
+  <input type="text" id="content" name="Content" autofocus>
+  <input type="submit" value="Submit"/>
+</form>
+
+{{ range .Data }}
+<div class="row">
+  <div class="col-md-12">
+    <p>{{ .Content }}</p>
+    <a href="/user/{{.Username}}">{{ .Username }}</a>
+  </div>
+</div>
+{{ end }}
+{{ end }}

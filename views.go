@@ -14,12 +14,23 @@ func init() {
   registerTemplate("user/register_form.html")
   registerTemplate("user/show.html")
   registerTemplate("user/edit_form.html")
+  registerTemplate("discuss/index.html")
 }
 
 func registerTemplate(name string) {
   tmpl, _ := template.ParseFiles("templates/layout.html", "templates/" + name)
   tmpls[name] = tmpl
 }
+
+/*
+func registerTemplate(name... string) {
+  tmpl, _ := template.ParseFiles("templates/layout.html")
+  for e := range(name) {
+    tmpl.ParseFiles("templates/" + e)
+  }
+  tmpls[name] = tmpl
+}
+*/
 
 func render(name string, w http.ResponseWriter, r *http.Request, d interface{}, flashes ...string) {
   t, ok := tmpls[name]

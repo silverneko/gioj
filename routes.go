@@ -11,6 +11,7 @@ import (
 func main() {
   mux := goji.NewMux()
   mux.HandleFunc(pat.Get("/"), WelcomeHandler)
+
   mux.HandleFunc(pat.Get("/login"), LoginHandler)
   mux.HandleFunc(pat.Post("/login"), AuthHandler)
   mux.HandleFunc(pat.Get("/logout"), LogoutHandler)
@@ -19,6 +20,9 @@ func main() {
   mux.HandleFuncC(pat.Get("/user/:user"), UserHandler)
   mux.HandleFuncC(pat.Get("/user/:user/edit"), UserEditHandler)
   mux.HandleFuncC(pat.Post("/user/:user/edit"), UserEditHandlerP)
+
+  mux.HandleFuncC(pat.Get("/discuss"), DiscussHandler)
+  mux.HandleFuncC(pat.Post("/discuss/new"), DiscussNewHandler)
 
   http.Handle("/", mux)
   err := http.ListenAndServe(":4000", context.ClearHandler(http.DefaultServeMux))

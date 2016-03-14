@@ -1,7 +1,7 @@
 {{ define "yield" }}
 <h1>User: <strong>{{ .User.Username }}</strong></h1>
 <form action="/user/{{.User.Username}}/edit" method="post">
-  <label for="Name">Name:</label>
+  <label for="Name">Nickname:</label>
   <input type="text" id="Name" name="Name"><br>
   <label for="New_Password">New Password:</label>
   <input type="password" id="New_Password" name="New_password"><br>

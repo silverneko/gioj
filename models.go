@@ -26,6 +26,12 @@ func EnsureDBIndices() error {
   return nil
 }
 
+type DiscussPost struct {
+  ID bson.ObjectId   `bson:"_id"`
+  Content string
+  Username string
+}
+
 type User struct {
   ID bson.ObjectId   `bson:"_id"`
   Name string
