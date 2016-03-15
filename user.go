@@ -2,14 +2,51 @@ package main
 
 import (
   "net/http"
+  "goji.io"
   "goji.io/pat"
-  "golang.org/x/net/context"
   "gopkg.in/mgo.v2/bson"
+  "golang.org/x/net/context"
   "golang.org/x/crypto/bcrypt"
   "log"
 )
 
+func AuthMiddleware(h goji.Handler) goji.Handler {
+  return goji.HandlerFunc(func (c context.Context, w http.ResponseWriter, r *http.Request) {
+    var user *User = nil
+    var username string
+    if err := cookieJar.GetCookie(r, AuthSession, &username); err != nil {
+      /* Invalid cookie */
+      log.Println(err)
+      cookieJar.DestroyCookie(w, AuthSession)
+    } else if username == "" {
+      cookieJar.DestroyCookie(w, AuthSession)
+    } else {
+      db := DBSession{DB.Copy()}
+      defer db.Close()
+      var result User
+      if err := db.C("users").Find(bson.M{"username": username}).One(&result); err != nil {
+        /* username don't exist in db */
+        log.Println(err)
+        cookieJar.DestroyCookie(w, AuthSession)
+      } else {
+        user = &result
+      }
+    }
+    ctx := context.WithValue(c, "currentUser", user)
+    h.ServeHTTPC(ctx, w, r)
+  })
+}
+
+func isLogin(c context.Context) bool {
+  user := c.Value("currentUser").(*User)
+  return user != nil
+}
+
 func UserHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
+  if !isLogin(c) {
+    http.Redirect(w, r, "/login", 302)
+    return
+  }
   username := pat.Param(c, "user")
   if !inRange(len(username), 3, 20) {
     http.Error(w, "500", 500)
@@ -24,16 +61,20 @@ func UserHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
     http.Error(w, "500", 500)
     return
   }
-  render("user/show.html", w, r, result);
+  render("user/show.html", c, w, result);
 }
 
 func UserEditHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
-  user := CurrentUser(w, r)
+  if !isLogin(c) {
+    http.Redirect(w, r, "/login", 302)
+    return
+  }
+  user := c.Value("currentUser").(*User)
   if user.Username != pat.Param(c, "user") {
     http.Error(w, "500", 500)
     return
   }
-  render("user/edit_form.html", w, r, "")
+  render("user/edit_form.html", c, w, "")
 }
 
 type UserEditForm struct {
@@ -44,7 +85,11 @@ type UserEditForm struct {
 }
 
 func UserEditHandlerP(c context.Context, w http.ResponseWriter, r *http.Request) {
-  user := CurrentUser(w, r)
+  if !isLogin(c) {
+    http.Redirect(w, r, "/login", 302)
+    return
+  }
+  user := c.Value("currentUser").(*User)
   if user.Username != pat.Param(c, "user") {
     http.Redirect(w, r, "/", 302)
     return
@@ -56,28 +101,35 @@ func UserEditHandlerP(c context.Context, w http.ResponseWriter, r *http.Request)
     ok := bcrypt.CompareHashAndPassword(user.Hashed_password, []byte(oldpwd))
     if ok != nil {
       /* password mismatch */
-      render("user/edit_form.html", w, r, "", "Wrong password!")
+      render("user/edit_form.html", c, w, "", "Wrong password!")
       return
     }
   } else {
     http.Error(w, "500", 500)
     return
   }
-  if !inRange(len(name), 3, 20) {
-    render("user/edit_form.html", w, r, "", "Nickname length: 3 ~ 20!")
-    return
+  if name != "" {
+    if inRange(len(name), 3, 20) {
+      user.Name = name
+    } else {
+      render("user/edit_form.html", c, w, "", "Nickname length: 3 ~ 20!")
+      return
+    }
   }
-  if !inRange(len(newpwd), 8, 40) {
-    render("user/edit_form.html", w, r, "", "Password length: 8 ~ 40!")
-    return
+  if newpwd != "" {
+    if inRange(len(newpwd), 8, 40) {
+      if newpwd == confirmpwd {
+        hashed, _ := bcrypt.GenerateFromPassword([]byte(newpwd), 10)
+        user.Hashed_password = hashed
+      } else {
+        render("user/edit_form.html", c, w, "", "Confirm new password mismatch!")
+        return
+      }
+    } else {
+      render("user/edit_form.html", c, w, "", "Password length: 8 ~ 40!")
+      return
+    }
   }
-  if newpwd != confirmpwd {
-    render("user/edit_form.html", w, r, "", "Confirm new password mismatch!")
-    return
-  }
-  hashed, _ := bcrypt.GenerateFromPassword([]byte(newpwd), 10)
-  user.Hashed_password = hashed
-  user.Name = name
   db := DBSession{DB.Copy()}
   defer db.Close()
   err := db.C("users").Update(bson.M{"_id": user.ID}, user)
@@ -90,15 +142,21 @@ func UserEditHandlerP(c context.Context, w http.ResponseWriter, r *http.Request)
   http.Redirect(w, r, "/", 302)
 }
 
-func LoginHandler(w http.ResponseWriter, req * http.Request) {
-  render("user/login_form.html", w, req, "")
+func LoginHandler(c context.Context, w http.ResponseWriter, r * http.Request) {
+  if isLogin(c) {
+    http.Redirect(w, r, "/", 302)
+    return
+  }
+  render("user/login_form.html", c, w, "")
 }
 
-func LogoutHandler(w http.ResponseWriter, req * http.Request) {
-  session, _ := cookieJar.Get(req, AuthSession)
-  session.Options.MaxAge = -1;
-  session.Save(req, w)
-  http.Redirect(w, req, "/", 302)
+func LogoutHandler(c context.Context, w http.ResponseWriter, r * http.Request) {
+  if !isLogin(c) {
+    http.Redirect(w, r, "/login", 302)
+    return
+  }
+  cookieJar.DestroyCookie(w, AuthSession)
+  http.Redirect(w, r, "/", 302)
 }
 
 type AuthCredential struct {
@@ -108,16 +166,20 @@ type AuthCredential struct {
   Confirm_password string   `schema:"confirm_password"`
 }
 
-func AuthHandler(w http.ResponseWriter, req * http.Request) {
+func AuthHandler(c context.Context, w http.ResponseWriter, r * http.Request) {
+  if isLogin(c) {
+    http.Redirect(w, r, "/", 302)
+    return
+  }
   var a AuthCredential
-  Decode(&a, req)
+  Decode(&a, r)
   username, password := a.Username, a.Password
   if !inRange(len(username), 3, 20) {
-    render("user/login_form.html", w, req, "", "Username not found!")
+    render("user/login_form.html", c, w, "", "Username not found!")
     return
   }
   if !inRange(len(password), 8, 40) {
-    render("user/login_form.html", w, req, "", "Username not found!")
+    render("user/login_form.html", c, w, "", "Username not found!")
     return
   }
 
@@ -127,44 +189,50 @@ func AuthHandler(w http.ResponseWriter, req * http.Request) {
   err := db.C("users").Find(bson.M{"username": username}).One(&result)
   if err != nil {
     /* User not found */
-    render("user/login_form.html", w, req, "", "Username not found!")
+    render("user/login_form.html", c, w, "", "Username not found!")
     return
   }
   ok := bcrypt.CompareHashAndPassword(result.Hashed_password, []byte(password))
   if ok != nil {
     /* password mismatch */
-    render("user/login_form.html", w, req, "", "Wrong password!")
+    render("user/login_form.html", c, w, "", "Wrong password!")
     return
   }
   log.Println("User login: ", username)
-  session, _ := cookieJar.Get(req, AuthSession)
-  session.Values["username"] = username
-  session.Save(req, w)
-  http.Redirect(w, req, "/", http.StatusFound)
+  cookieJar.PutCookie(w, AuthSession, username)
+  http.Redirect(w, r, "/", http.StatusFound)
 }
 
-func RegisterHandler(w http.ResponseWriter, req * http.Request) {
-  render("user/register_form.html", w, req, "")
+func RegisterHandler(c context.Context, w http.ResponseWriter, r * http.Request) {
+  if isLogin(c) {
+    http.Redirect(w, r, "/", 302)
+    return
+  }
+  render("user/register_form.html", c, w, "")
 }
 
-func RegisterHandlerP(w http.ResponseWriter, req * http.Request) {
+func RegisterHandlerP(c context.Context, w http.ResponseWriter, r * http.Request) {
+  if isLogin(c) {
+    http.Redirect(w, r, "/", 302)
+    return
+  }
   var a AuthCredential
-  Decode(&a, req)
+  Decode(&a, r)
   name, username, password, confirm := a.Name, a.Username, a.Password, a.Confirm_password
   if !inRange(len(name), 3, 20) {
-    render("user/register_form.html", w, req, "", "Nickname length: 3 ~ 20!")
+    render("user/register_form.html", c, w, "", "Nickname length: 3 ~ 20!")
     return
   }
   if !inRange(len(username), 3, 20) {
-    render("user/register_form.html", w, req, "", "Username length: 3 ~ 20!")
+    render("user/register_form.html", c, w, "", "Username length: 3 ~ 20!")
     return
   }
   if !inRange(len(password), 8, 40) {
-    render("user/register_form.html", w, req, "", "Password length: 8 ~ 40!")
+    render("user/register_form.html", c, w, "", "Password length: 8 ~ 40!")
     return
   }
   if password != confirm {
-    render("user/register_form.html", w, req, "", "Confirm password mismatch!")
+    render("user/register_form.html", c, w, "", "Confirm password mismatch!")
     return
   }
   hashed, _ := bcrypt.GenerateFromPassword([]byte(password), 10)
@@ -172,13 +240,11 @@ func RegisterHandlerP(w http.ResponseWriter, req * http.Request) {
   defer db.Close()
   err := db.C("users").Insert(bson.M{"name": name, "username": username, "hashed_password": hashed})
   if err != nil {
-    render("user/register_form.html", w, req, "", "Cannot use this username!")
+    render("user/register_form.html", c, w, "", "Cannot use this username!")
     return
   }
   log.Println("Create user: ", username)
-  cookie, _ := cookieJar.Get(req, AuthSession)
-  cookie.Values["username"] = username
-  cookie.Save(req, w)
-  http.Redirect(w, req, "/", 302)
+  cookieJar.PutCookie(w, AuthSession, username)
+  http.Redirect(w, r, "/", 302)
 }
 

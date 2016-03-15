@@ -4,6 +4,7 @@ import (
   "html/template"
   "log"
   "net/http"
+  "golang.org/x/net/context"
 )
 
 var tmpls = make(map[string]*template.Template)
@@ -32,7 +33,7 @@ func registerTemplate(name... string) {
 }
 */
 
-func render(name string, w http.ResponseWriter, r *http.Request, d interface{}, flashes ...string) {
+func render(name string, c context.Context, w http.ResponseWriter, d interface{}, flashes ...string) {
   t, ok := tmpls[name]
   if !ok {
     log.Println("views.go/render() template not found: ", name)
@@ -41,7 +42,7 @@ func render(name string, w http.ResponseWriter, r *http.Request, d interface{}, 
   }
   err := t.Execute(w, map[string]interface{}{
     "Flash": flashes,
-    "User": CurrentUser(w, r),
+    "User": c.Value("currentUser").(*User),
     "Data": d,
   })
   if err != nil {
