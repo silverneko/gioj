@@ -20,9 +20,9 @@ func init() {
 }
 
 func registerTemplate(name... string) {
-  tmpl, _ := template.ParseFiles("templates/layout.html")
+  tmpl, _ := template.ParseFiles("templates/layout.html.tmpl")
   for _, e := range name {
-    tmpl.ParseFiles("templates/" + e)
+    tmpl.ParseFiles("templates/" + e + ".tmpl")
   }
   tmpls[name[0]] = tmpl
 }
