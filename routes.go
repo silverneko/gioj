@@ -11,6 +11,7 @@ func main() {
   mux := goji.NewMux()
   mux.UseC(AuthMiddleware)
   mux.HandleFuncC(pat.Get("/"), WelcomeHandler)
+  mux.HandleFuncC(pat.Get("/about"), AboutHandler)
 
   mux.HandleFuncC(pat.Get("/login"), LoginHandler)
   mux.HandleFuncC(pat.Post("/login"), AuthHandler)

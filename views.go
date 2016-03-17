@@ -11,6 +11,7 @@ var tmpls = make(map[string]*template.Template)
 
 func init() {
   registerTemplate("welcome.html")
+  registerTemplate("about.html")
   registerTemplate("user/login_form.html")
   registerTemplate("user/register_form.html")
   registerTemplate("user/show.html")
@@ -18,20 +19,13 @@ func init() {
   registerTemplate("discuss/index.html")
 }
 
-func registerTemplate(name string) {
-  tmpl, _ := template.ParseFiles("templates/layout.html", "templates/" + name)
-  tmpls[name] = tmpl
-}
-
-/*
 func registerTemplate(name... string) {
   tmpl, _ := template.ParseFiles("templates/layout.html")
-  for e := range(name) {
+  for _, e := range name {
     tmpl.ParseFiles("templates/" + e)
   }
-  tmpls[name] = tmpl
+  tmpls[name[0]] = tmpl
 }
-*/
 
 func render(name string, c context.Context, w http.ResponseWriter, d interface{}, flashes ...string) {
   t, ok := tmpls[name]
