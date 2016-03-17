@@ -14,15 +14,15 @@ func main() {
 
   mux.HandleFuncC(pat.Get("/login"), LoginHandler)
   mux.HandleFuncC(pat.Post("/login"), AuthHandler)
-  mux.HandleFuncC(pat.Get("/logout"), LogoutHandler)
   mux.HandleFuncC(pat.Get("/register"), RegisterHandler)
   mux.HandleFuncC(pat.Post("/register"), RegisterHandlerP)
-  mux.HandleFuncC(pat.Get("/user/:user"), UserHandler)
-  mux.HandleFuncC(pat.Get("/user/:user/edit"), UserEditHandler)
-  mux.HandleFuncC(pat.Post("/user/:user/edit"), UserEditHandlerP)
+  mux.HandleC(pat.Get("/logout"), RequireAuth(LogoutHandler))
+  mux.HandleC(pat.Get("/user/:user"), RequireAuth(UserHandler))
+  mux.HandleC(pat.Get("/user/:user/edit"), RequireAuth(UserEditHandler))
+  mux.HandleC(pat.Post("/user/:user/edit"), RequireAuth(UserEditHandlerP))
 
-  mux.HandleFuncC(pat.Get("/discuss"), DiscussHandler)
-  mux.HandleFuncC(pat.Post("/discuss/new"), DiscussNewHandler)
+  mux.HandleC(pat.Get("/discuss"), RequireAuth(DiscussHandler))
+  mux.HandleC(pat.Post("/discuss/new"), RequireAuth(DiscussNewHandler))
 
   http.Handle("/", mux)
   err := http.ListenAndServe(":4000", http.DefaultServeMux)

@@ -2,7 +2,6 @@ package main
 
 import (
   "net/http"
-  "goji.io"
   "goji.io/pat"
   "gopkg.in/mgo.v2/bson"
   "golang.org/x/net/context"
@@ -10,43 +9,7 @@ import (
   "log"
 )
 
-func AuthMiddleware(h goji.Handler) goji.Handler {
-  return goji.HandlerFunc(func (c context.Context, w http.ResponseWriter, r *http.Request) {
-    var user *User = nil
-    var username string
-    if err := cookieJar.GetCookie(r, AuthSession, &username); err != nil {
-      /* Invalid cookie */
-      log.Println(err)
-      cookieJar.DestroyCookie(w, AuthSession)
-    } else if username == "" {
-      cookieJar.DestroyCookie(w, AuthSession)
-    } else {
-      db := DBSession{DB.Copy()}
-      defer db.Close()
-      var result User
-      if err := db.C("users").Find(bson.M{"username": username}).One(&result); err != nil {
-        /* username don't exist in db */
-        log.Println(err)
-        cookieJar.DestroyCookie(w, AuthSession)
-      } else {
-        user = &result
-      }
-    }
-    ctx := context.WithValue(c, "currentUser", user)
-    h.ServeHTTPC(ctx, w, r)
-  })
-}
-
-func isLogin(c context.Context) bool {
-  user := c.Value("currentUser").(*User)
-  return user != nil
-}
-
 func UserHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
-  if !isLogin(c) {
-    http.Redirect(w, r, "/login", 302)
-    return
-  }
   username := pat.Param(c, "user")
   if !inRange(len(username), 3, 20) {
     http.Error(w, "500", 500)
@@ -65,10 +28,6 @@ func UserHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func UserEditHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
-  if !isLogin(c) {
-    http.Redirect(w, r, "/login", 302)
-    return
-  }
   user := c.Value("currentUser").(*User)
   if user.Username != pat.Param(c, "user") {
     http.Error(w, "500", 500)
@@ -85,10 +44,6 @@ type UserEditForm struct {
 }
 
 func UserEditHandlerP(c context.Context, w http.ResponseWriter, r *http.Request) {
-  if !isLogin(c) {
-    http.Redirect(w, r, "/login", 302)
-    return
-  }
   user := c.Value("currentUser").(*User)
   if user.Username != pat.Param(c, "user") {
     http.Redirect(w, r, "/", 302)
@@ -151,10 +106,6 @@ func LoginHandler(c context.Context, w http.ResponseWriter, r * http.Request) {
 }
 
 func LogoutHandler(c context.Context, w http.ResponseWriter, r * http.Request) {
-  if !isLogin(c) {
-    http.Redirect(w, r, "/login", 302)
-    return
-  }
   cookieJar.DestroyCookie(w, AuthSession)
   http.Redirect(w, r, "/", 302)
 }

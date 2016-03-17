@@ -9,10 +9,6 @@ import (
 
 // GET /discuss
 func DiscussHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
-  if !isLogin(c) {
-    http.Redirect(w, r, "/login", 302)
-    return
-  }
   db := DBSession{DB.Copy()}
   defer db.Close()
   it := db.C("discuss").Find(nil).Sort("-_id").Limit(50).Iter()
@@ -25,10 +21,6 @@ func DiscussHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
 
 // POST /discuss/new
 func DiscussNewHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
-  if !isLogin(c) {
-    http.Redirect(w, r, "/login", 302)
-    return
-  }
   var post DiscussPost
   Decode(&post, r)
   if post.Content == "" {
