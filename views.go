@@ -5,6 +5,7 @@ import (
   "log"
   "net/http"
   "golang.org/x/net/context"
+  "github.com/russross/blackfriday"
 )
 
 var tmpls = make(map[string]*template.Template)
@@ -32,7 +33,12 @@ func init() {
 }
 
 func registerTemplate(name... string) {
-  tmpl, _ := template.ParseFiles("templates/layout.html.tmpl")
+  tmpl := template.New("layout.html.tmpl").Funcs(template.FuncMap{
+    "markdown": func (s string) template.HTML {
+      return template.HTML(blackfriday.MarkdownCommon([]byte(s)))
+    },
+  })
+  tmpl.ParseFiles("templates/layout.html.tmpl")
   for _, e := range name {
     tmpl.ParseFiles("templates/" + e + ".tmpl")
   }

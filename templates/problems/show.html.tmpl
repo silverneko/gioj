@@ -6,7 +6,7 @@
 <h1>Problem <strong>#{{.Data.ID}}</strong></h1>
 <h2>{{.Data.Name}}</h2>
 <div>
-  <p>{{.Data.Content}}</p>
+  <p>{{markdown .Data.Content}}</p>
 </div>
 <div>
   <a href="/user/{{.Data.AuthorName}}">{{.Data.AuthorName}}</a>

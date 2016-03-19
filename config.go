@@ -7,6 +7,7 @@ import (
   "encoding/hex"
   "gopkg.in/mgo.v2"
   "log"
+  _ "os"
 )
 
 var decoder = schema.NewDecoder()
@@ -37,6 +38,10 @@ func init() {
     ),
   }
 
+  /*
+  mgo.SetDebug(true)
+  mgo.SetLogger(log.New(os.Stderr, "[Database]", log.LstdFlags))
+  */
   var err error
   DB, err = mgo.DialWithInfo(&mgo.DialInfo{
     Addrs: []string{"localhost"},
