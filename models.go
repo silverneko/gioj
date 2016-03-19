@@ -15,15 +15,26 @@ func (s DBSession) C(name string) *mgo.Collection {
 }
 
 func EnsureDBIndices() error {
-  err := DB.DB("").C("users").EnsureIndex(mgo.Index{
+  if err := DB.DB("").C("users").EnsureIndex(mgo.Index{
     Key: []string{"username"},
     Unique: true,
-  })
-  if err != nil {
+  }); err != nil {
     log.Println(err)
     return err
   }
   return nil
+}
+
+type Idx struct {
+  ID string `bson:"_id"`
+  Seq int
+}
+
+type Problem struct {
+  ID int   `bson:"_id"`
+  Name string
+  Content string
+  AuthorName string `bson:"authorname"`
 }
 
 type DiscussPost struct {

@@ -18,8 +18,7 @@ func UserHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
   db := DBSession{DB.Copy()}
   defer db.Close()
   var result User
-  err := db.C("users").Find(bson.M{"username": username}).One(&result)
-  if err != nil {
+  if err := db.C("users").Find(bson.M{"username": username}).One(&result); err != nil {
     /* username don't exist in db */
     http.Error(w, "500", 500)
     return
@@ -87,8 +86,7 @@ func UserEditHandlerP(c context.Context, w http.ResponseWriter, r *http.Request)
   }
   db := DBSession{DB.Copy()}
   defer db.Close()
-  err := db.C("users").Update(bson.M{"_id": user.ID}, user)
-  if err != nil {
+  if err := db.C("users").Update(bson.M{"_id": user.ID}, user); err != nil {
     log.Println("User update: ", err, user.ID)
     http.Error(w, "500", 500)
     return
@@ -137,8 +135,7 @@ func AuthHandler(c context.Context, w http.ResponseWriter, r * http.Request) {
   db := DBSession{DB.Copy()}
   defer db.Close()
   var result User
-  err := db.C("users").Find(bson.M{"username": username}).One(&result)
-  if err != nil {
+  if err := db.C("users").Find(bson.M{"username": username}).One(&result); err != nil {
     /* User not found */
     render("user/login_form.html", c, w, "", "Username not found!")
     return
@@ -189,8 +186,7 @@ func RegisterHandlerP(c context.Context, w http.ResponseWriter, r * http.Request
   hashed, _ := bcrypt.GenerateFromPassword([]byte(password), 10)
   db := DBSession{DB.Copy()}
   defer db.Close()
-  err := db.C("users").Insert(bson.M{"name": name, "username": username, "hashed_password": hashed})
-  if err != nil {
+  if err := db.C("users").Insert(bson.M{"name": name, "username": username, "hashed_password": hashed}); err != nil {
     render("user/register_form.html", c, w, "", "Cannot use this username!")
     return
   }

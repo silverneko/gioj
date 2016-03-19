@@ -17,6 +17,10 @@ func init() {
   registerTemplate("user/show.html")
   registerTemplate("user/edit_form.html")
   registerTemplate("discuss/index.html")
+  registerTemplate("problems/index.html")
+  registerTemplate("problems/show.html")
+  registerTemplate("problems/new.html", "problems/_form.html")
+  registerTemplate("problems/edit.html", "problems/_form.html")
 }
 
 func registerTemplate(name... string) {
