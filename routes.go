@@ -32,6 +32,14 @@ func main() {
   mux.HandleC(pat.Get("/problems/:id/edit"), RequireAuth(ProblemEditHandler))
   mux.HandleC(pat.Post("/problems/:id/edit"), RequireAuth(ProblemEditHandlerP))
 
+  mux.HandleC(pat.Get("/status"), RequireAuth(StatusHandler))
+  mux.HandleC(pat.Get("/status/:id"), RequireAuth(StatusShowHandler))
+  mux.HandleC(pat.Get("/status/:id/edit"), RequireAuth(StatusEditHandler))
+  mux.HandleC(pat.Post("/status/:id/edit"), RequireAuth(StatusEditHandlerP))
+  mux.HandleC(pat.Get("/problems/:id/status"), RequireAuth(ProblemStatusHandler))
+  mux.HandleC(pat.Get("/problems/:id/submit"), RequireAuth(ProblemSubmitHandler))
+  mux.HandleC(pat.Post("/problems/:id/submit"), RequireAuth(ProblemSubmitHandlerP))
+
   http.Handle("/", mux)
   err := http.ListenAndServe(":4000", http.DefaultServeMux)
   if err != nil {

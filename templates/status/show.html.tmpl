@@ -1,0 +1,20 @@
+{{ define "yield" }}
+<a href="/problems/{{.Data.Pid}}/status">Show problem status</a>
+| <a href="/status/{{.Data.ID.Hex}}/edit">Edit</a>
+<h1>Submission <strong>#{{.Data.ID.Hex}}</strong></h1>
+<div>
+  {{.Data.Verdict}}
+</div>
+<div>
+  {{.Data.Lang}}
+</div>
+<div>
+  <pre>{{.Data.Content}}</pre>
+</div>
+<div>
+  <a href="/user/{{.Data.Username}}">{{.Data.Username}}</a>
+</div>
+<div>
+  <a href="/problems/{{.Data.Pid}}">{{.Data.Pid}}</a>
+</div>
+{{ end }}

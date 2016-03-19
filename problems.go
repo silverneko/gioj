@@ -23,7 +23,11 @@ func ProblemsHandler(c context.Context, w http.ResponseWriter, r *http.Request) 
 }
 // GET /problems/:id
 func ProblemHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
-  pid, _ := strconv.Atoi(pat.Param(c, "id"))
+  pid, err := strconv.Atoi(pat.Param(c, "id"))
+  if err != nil {
+    http.Error(w, "500", 500)
+    return
+  }
   db := DBSession{DB.Copy()}
   defer db.Close()
   var problem Problem
@@ -73,19 +77,35 @@ func ProblemNewHandlerP(c context.Context, w http.ResponseWriter, r *http.Reques
 }
 // GET /problems/:id/edit
 func ProblemEditHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
-  pid, _ := strconv.Atoi(pat.Param(c, "id"))
-  render("problems/edit.html", c, w, pid)
+  pid, err := strconv.Atoi(pat.Param(c, "id"))
+  if err != nil {
+    http.Error(w, "500", 500)
+    return
+  }
+  var problem Problem
+  db := DBSession{DB.Copy()}
+  defer db.Close()
+  if err := db.C("problems").Find(bson.M{"_id": pid}).One(&problem); err != nil {
+    log.Println("Edit problem: ", err)
+    http.Error(w, "500", 500)
+    return
+  }
+  render("problems/edit.html", c, w, problem)
 }
 // POST /problems/:id/edit
 func ProblemEditHandlerP(c context.Context, w http.ResponseWriter, r *http.Request) {
   pids := pat.Param(c, "id")
-  pid, _ := strconv.Atoi(pids)
+  pid, err := strconv.Atoi(pids)
+  if err != nil {
+    http.Error(w, "500", 500)
+    return
+  }
   var problem Problem
   Decode(&problem, r)
   problem.ID = pid
   db := DBSession{DB.Copy()}
   defer db.Close()
-  if _, err := db.C("problems").Upsert(bson.M{"_id": pid}, problem); err != nil {
+  if _, err := db.C("problems").Upsert(bson.M{"_id": pid}, bson.M{"$set": problem}); err != nil {
     log.Println("Problem update: ", err, pid)
     http.Error(w, "500", 500)
     return

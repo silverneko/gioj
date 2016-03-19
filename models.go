@@ -30,6 +30,39 @@ type Idx struct {
   Seq int
 }
 
+type Submission struct {
+  ID bson.ObjectId  `bson:"_id"`
+  Pid int
+  Username string
+  Verdict verdict
+  Lang int
+  Content string
+}
+
+type verdict struct {
+  Result int
+  Timeused int
+  Memused int
+}
+
+const (
+  QUEUED int = iota
+  AC
+  WA
+  TLE
+  MLE
+  RE
+  CE
+  ERR
+)
+
+const (
+  LANGCPP int = iota
+  LANGC
+  LANGGHC
+  LANGSIZE
+)
+
 type Problem struct {
   ID int   `bson:"_id"`
   Name string

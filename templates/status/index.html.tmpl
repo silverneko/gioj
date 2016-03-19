@@ -1,0 +1,25 @@
+{{ define "yield" }}
+<h1>Status</h1>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>PID</th>
+      <th>Verdict</th>
+      <th>Username</th>
+      <th>Lang</th>
+    </tr>
+  </thead>
+  <tbody>
+  {{ range .Data }}
+    <tr>
+      <td><a href="/status/{{.ID.Hex}}">{{.ID.Hex}}</a></td>
+      <td><a href="/problems/{{.Pid}}">{{.Pid}}</a></td>
+      <td>{{.Verdict}}</td>
+      <td>{{.Username}}</td>
+      <td>{{.Lang}}</td>
+    </tr>
+  {{ end }}
+  </tbody>
+</table>
+{{ end }}

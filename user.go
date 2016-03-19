@@ -59,7 +59,7 @@ func UserEditHandlerP(c context.Context, w http.ResponseWriter, r *http.Request)
       return
     }
   } else {
-    http.Error(w, "500", 500)
+    render("user/edit_form.html", c, w, "", "Wrong password!")
     return
   }
   if name != "" {

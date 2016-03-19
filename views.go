@@ -12,15 +12,23 @@ var tmpls = make(map[string]*template.Template)
 func init() {
   registerTemplate("welcome.html")
   registerTemplate("about.html")
+
   registerTemplate("user/login_form.html")
   registerTemplate("user/register_form.html")
   registerTemplate("user/show.html")
   registerTemplate("user/edit_form.html")
+
   registerTemplate("discuss/index.html")
+
   registerTemplate("problems/index.html")
   registerTemplate("problems/show.html")
   registerTemplate("problems/new.html", "problems/_form.html")
   registerTemplate("problems/edit.html", "problems/_form.html")
+
+  registerTemplate("status/index.html")
+  registerTemplate("status/show.html")
+  registerTemplate("status/new.html")
+  registerTemplate("status/edit.html")
 }
 
 func registerTemplate(name... string) {

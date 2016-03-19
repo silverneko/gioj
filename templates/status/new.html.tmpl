@@ -1,0 +1,15 @@
+{{ define "yield" }}
+<h1>Submit Problem<strong>#{{.Data}}</strong></h1>
+<form action="/problems/{{.Data}}/submit" method="post">
+  <label for="Lang">Lang:</label>
+  <select id="Lang" name="Lang">
+    <option value="0" selected="selected">c++11</option>
+    <option value="1">c</option>
+    <option value="2">ghc</option>
+  </select>
+  <br>
+  <textarea name="Content" autofocus="autofocus"></textarea>
+  <input type="submit" value="Submit">
+</form>
+<a href="/problems/{{.Data}}">Back to problem</a>
+{{ end }}

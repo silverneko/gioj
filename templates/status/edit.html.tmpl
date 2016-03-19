@@ -1,0 +1,30 @@
+{{ define "yield" }}
+<h1>Edit Submission<strong>#{{.Data.ID.Hex}}</strong></h1>
+<form action="/status/{{.Data.ID.Hex}}/edit" method="post">
+  <label for="Lang">Lang:</label>
+  <select id="Lang" name="Lang">
+    {{if eq .Data.Lang 0 }}
+      <option value="0" selected="selected">
+    {{else}}
+      <option value="0">
+    {{end}}
+      c++11</option>
+    {{if eq .Data.Lang 1 }}
+      <option value="1" selected="selected">
+    {{else}}
+      <option value="1">
+    {{end}}
+      c</option>
+    {{if eq .Data.Lang 2 }}
+      <option value="2" selected="selected">
+    {{else}}
+      <option value="2">
+    {{end}}
+      ghc</option>
+  </select>
+  <br>
+  <textarea name="Content" autofocus="autofocus">{{.Data.Content}}</textarea>
+  <input type="submit" value="Submit">
+</form>
+<a href="/status/{{.Data.ID.Hex}}">Back to submission</a>
+{{ end }}

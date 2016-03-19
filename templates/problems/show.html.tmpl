@@ -1,6 +1,8 @@
 {{ define "yield" }}
 <a href="/problems">Problems Index</a>
+| <a href="/problems/{{.Data.ID}}/submit">Submit</a>
 | <a href="/problems/{{.Data.ID}}/edit">Edit</a>
+| <a href="/problems/{{.Data.ID}}/status">Status</a>
 <h1>Problem <strong>#{{.Data.ID}}</strong></h1>
 <h2>{{.Data.Name}}</h2>
 <div>
