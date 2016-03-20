@@ -81,5 +81,14 @@ type User struct {
   Name string
   Username string
   Hashed_password []byte
+  Role int
 }
 
+const (
+  USERROLE int = iota
+  ADMINROLE
+)
+
+func (u *User) IsAdmin() bool {
+  return u.Role == ADMINROLE
+}

@@ -1,14 +1,27 @@
 {{ define "yield" }}
-<h1>User <strong>{{ .User.Username }}</strong></h1>
-<form action="/user/{{.User.Username}}/edit" method="post">
+<h1>User <strong>{{ .Data.Username }}</strong></h1>
+<form action="/user/{{.Data.Username}}/edit" method="post">
   <label for="Name">Nickname:</label>
-  <input type="text" id="Name" name="Name"><br>
-  <label for="New_Password">New Password:</label>
+  <input type="text" id="Name" name="Name" value="{{.Data.Name}}"><br>
+  <label for="New_Password">New Password (leave blank if not changing password):</label>
   <input type="password" id="New_Password" name="New_password"><br>
   <label for="Confirm_Password">Confirm New Password:</label>
   <input type="password" id="Confirm_Password" name="Confirm_password"><br>
   <label for="Password">Old Password:</label>
   <input type="password" id="Password" name="Old_password"><br>
+  {{if .User.IsAdmin}}
+  <label for="Role">Role:</label>
+  <select id="Role" name="Role">
+    {{if eq .Data.Role 1}}
+    <option value="0">User</option>
+    <option value="1" selected="selected">Admin</option>
+    {{else}}
+    <option value="0" selected="selected">User</option>
+    <option value="1">Admin</option>
+    {{end}}
+  </select>
+  <br>
+  {{end}}
   <input type="submit" value="Submit">
 </form>
 {{ end }}

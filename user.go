@@ -27,12 +27,21 @@ func UserHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func UserEditHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
-  user := c.Value("currentUser").(*User)
-  if user.Username != pat.Param(c, "user") {
+  username := pat.Param(c, "user")
+  currentUser := c.Value("currentUser").(*User)
+  if !currentUser.IsAdmin() && currentUser.Username != username {
+    http.Redirect(w, r, "/", 302)
+    return
+  }
+  db := DBSession{DB.Copy()}
+  defer db.Close()
+  var user User
+  if err := db.C("users").Find(bson.M{"username": username}).One(&user); err != nil {
+    log.Println("User find: ", err, username)
     http.Error(w, "500", 500)
     return
   }
-  render("user/edit_form.html", c, w, "")
+  render("user/edit_form.html", c, w, user)
 }
 
 type UserEditForm struct {
@@ -40,10 +49,47 @@ type UserEditForm struct {
   New_password string
   Confirm_password string
   Old_password string
+  Role int
+}
+
+
+func AdminEditHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
+  username := pat.Param(c, "user")
+  var form UserEditForm
+  Decode(&form, r)
+  name, newpwd, role := form.Name, form.New_password, form.Role
+  if role != USERROLE && role != ADMINROLE {
+    role = USERROLE
+  }
+  db := DBSession{DB.Copy()}
+  defer db.Close()
+  var user User
+  if err := db.C("users").Find(bson.M{"username": username}).One(&user); err != nil {
+    log.Println("User find: ", err, username)
+    http.Error(w, "500", 500)
+    return
+  }
+  user.Name = name
+  if newpwd != "" {
+    hashed, _ := bcrypt.GenerateFromPassword([]byte(newpwd), 10)
+    user.Hashed_password = hashed
+  }
+  user.Role = role
+  if err := db.C("users").Update(bson.M{"username": username}, user); err != nil {
+    log.Println("User update: ", err, user)
+    http.Error(w, "500", 500)
+    return
+  }
+  log.Println("User update: ", user)
+  http.Redirect(w, r, "/user/" + user.Username, 302)
 }
 
 func UserEditHandlerP(c context.Context, w http.ResponseWriter, r *http.Request) {
   user := c.Value("currentUser").(*User)
+  if user.IsAdmin() {
+    AdminEditHandler(c, w, r)
+    return
+  }
   if user.Username != pat.Param(c, "user") {
     http.Redirect(w, r, "/", 302)
     return
@@ -62,13 +108,11 @@ func UserEditHandlerP(c context.Context, w http.ResponseWriter, r *http.Request)
     render("user/edit_form.html", c, w, "", "Wrong password!")
     return
   }
-  if name != "" {
-    if inRange(len(name), 3, 20) {
-      user.Name = name
-    } else {
-      render("user/edit_form.html", c, w, "", "Nickname length: 3 ~ 20!")
-      return
-    }
+  if inRange(len(name), 3, 20) {
+    user.Name = name
+  } else {
+    render("user/edit_form.html", c, w, "", "Nickname length: 3 ~ 20!")
+    return
   }
   if newpwd != "" {
     if inRange(len(newpwd), 8, 40) {
@@ -92,7 +136,7 @@ func UserEditHandlerP(c context.Context, w http.ResponseWriter, r *http.Request)
     return
   }
   log.Println("User update: ", user)
-  http.Redirect(w, r, "/", 302)
+  http.Redirect(w, r, "/user/" + user.Username, 302)
 }
 
 func LoginHandler(c context.Context, w http.ResponseWriter, r * http.Request) {
@@ -123,11 +167,11 @@ func AuthHandler(c context.Context, w http.ResponseWriter, r * http.Request) {
   var a AuthCredential
   Decode(&a, r)
   username, password := a.Username, a.Password
-  if !inRange(len(username), 3, 20) {
+  if !inRange(len(username), 1, 100) {
     render("user/login_form.html", c, w, "", "Username not found!")
     return
   }
-  if !inRange(len(password), 8, 40) {
+  if !inRange(len(password), 1, 100) {
     render("user/login_form.html", c, w, "", "Username not found!")
     return
   }
@@ -186,7 +230,12 @@ func RegisterHandlerP(c context.Context, w http.ResponseWriter, r * http.Request
   hashed, _ := bcrypt.GenerateFromPassword([]byte(password), 10)
   db := DBSession{DB.Copy()}
   defer db.Close()
-  if err := db.C("users").Insert(bson.M{"name": name, "username": username, "hashed_password": hashed}); err != nil {
+  if err := db.C("users").Insert(bson.M{
+    "name": name,
+    "username": username,
+    "hashed_password": hashed,
+    "role": USERROLE,
+  }); err != nil {
     render("user/register_form.html", c, w, "", "Cannot use this username!")
     return
   }

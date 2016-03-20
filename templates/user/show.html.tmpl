@@ -3,7 +3,7 @@
 <div>
   Nickname: {{ .Data.Name }}
 </div>
-{{ if eq .User.Username .Data.Username }}
+{{ if or (eq .User.Username .Data.Username) (.User.IsAdmin)}}
 <div>
   <a href="/user/{{ .Data.Username }}/edit">Edit</a>
 </div>
