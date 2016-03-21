@@ -1,0 +1,19 @@
+{{define "yield"}}
+  <h1>Users Index</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Nickname</th>
+      </tr>
+    </thead>
+    <tbody>
+    {{range .Data}}
+      <tr>
+        <th><a href="/user/{{.Username}}">{{.Username}}</a></th>
+        <th>{{.Name}}</th>
+      </tr>
+    {{end}}
+    </tbody>
+  </table>
+{{end}}

@@ -9,6 +9,18 @@ import (
   "log"
 )
 
+func UserIndexHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
+  db := DBSession{DB.Copy()}
+  defer db.Close()
+  var users []User
+  if err := db.C("users").Find(nil).All(&users); err != nil {
+    log.Println("Users index: ", err)
+    http.Error(w, "500", 500)
+    return
+  }
+  render("user/index.html", c, w, users)
+}
+
 func UserHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
   username := pat.Param(c, "user")
   if !inRange(len(username), 3, 20) {

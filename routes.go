@@ -18,6 +18,7 @@ func main() {
   mux.HandleFuncC(pat.Get("/register"), RegisterHandler)
   mux.HandleFuncC(pat.Post("/register"), RegisterHandlerP)
   mux.HandleC(pat.Get("/logout"), RequireAuth(LogoutHandler))
+  mux.HandleC(pat.Get("/user"), RequireAuth(UserIndexHandler))
   mux.HandleC(pat.Get("/user/:user"), RequireAuth(UserHandler))
   mux.HandleC(pat.Get("/user/:user/edit"), RequireAuth(UserEditHandler))
   mux.HandleC(pat.Post("/user/:user/edit"), RequireAuth(UserEditHandlerP))
