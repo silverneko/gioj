@@ -40,7 +40,7 @@ func UserHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
 
 func UserEditHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
   username := pat.Param(c, "user")
-  currentUser := c.Value("currentUser").(*User)
+  currentUser := CurrentUser(c)
   if !currentUser.IsAdmin() && currentUser.Username != username {
     http.Redirect(w, r, "/", 302)
     return
@@ -97,7 +97,7 @@ func AdminEditHandler(c context.Context, w http.ResponseWriter, r *http.Request)
 }
 
 func UserEditHandlerP(c context.Context, w http.ResponseWriter, r *http.Request) {
-  user := c.Value("currentUser").(*User)
+  user := CurrentUser(c)
   if user.IsAdmin() {
     AdminEditHandler(c, w, r)
     return
@@ -203,7 +203,7 @@ func AuthHandler(c context.Context, w http.ResponseWriter, r * http.Request) {
     return
   }
   log.Println("User login: ", username)
-  cookieJar.PutCookie(w, AuthSession, username)
+  cookieJar.PutCookie(w, AuthSession, []interface{}{username, result.Hashed_password})
   http.Redirect(w, r, "/", http.StatusFound)
 }
 
@@ -252,7 +252,7 @@ func RegisterHandlerP(c context.Context, w http.ResponseWriter, r * http.Request
     return
   }
   log.Println("Create user: ", username)
-  cookieJar.PutCookie(w, AuthSession, username)
+  cookieJar.PutCookie(w, AuthSession, []interface{}{username, hashed})
   http.Redirect(w, r, "/", 302)
 }
 

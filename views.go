@@ -55,7 +55,7 @@ func render(name string, c context.Context, w http.ResponseWriter, d interface{}
   }
   err := t.Execute(w, map[string]interface{}{
     "Flash": flashes,
-    "User": c.Value("currentUser").(*User),
+    "User": CurrentUser(c),
     "Data": d,
   })
   if err != nil {

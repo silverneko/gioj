@@ -43,7 +43,7 @@ func ProblemNewHandler(c context.Context, w http.ResponseWriter, r *http.Request
 }
 // POST /problems/new
 func ProblemNewHandlerP(c context.Context, w http.ResponseWriter, r *http.Request) {
-  user := c.Value("currentUser").(*User)
+  user := CurrentUser(c)
   var problem Problem
   Decode(&problem, r)
   problem.AuthorName = user.Username

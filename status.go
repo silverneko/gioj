@@ -129,7 +129,7 @@ func ProblemSubmitHandlerP(c context.Context, w http.ResponseWriter, r *http.Req
     http.Error(w, "500", 500)
     return
   }
-  user := c.Value("currentUser").(*User)
+  user := CurrentUser(c)
   var submission Submission
   Decode(&submission, r)
   submission.ID = bson.NewObjectId()

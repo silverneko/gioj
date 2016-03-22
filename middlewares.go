@@ -6,20 +6,30 @@ import (
   "gopkg.in/mgo.v2/bson"
   "golang.org/x/net/context"
   "log"
+  "bytes"
+)
+
+type Key int
+const (
+  userKey Key = iota
 )
 
 func AuthMiddleware(h goji.Handler) goji.Handler {
   return goji.HandlerFunc(
     func (c context.Context, w http.ResponseWriter, r *http.Request) {
       var user *User = nil
-      var username string
-      if err := cookieJar.GetCookie(r, AuthSession, &username); err != nil {
+      var cookie []interface{}
+      if err := cookieJar.GetCookie(r, AuthSession, &cookie); err != nil {
         /* Invalid cookie */
         log.Println(err)
         cookieJar.DestroyCookie(w, AuthSession)
-      } else if username == "" {
-        cookieJar.DestroyCookie(w, AuthSession)
       } else {
+	username, ok1 := cookie[0].(string)
+	hashed, ok2 := cookie[1].([]byte)
+	if (!ok1) || (!ok2) {
+	  log.Println("Invalid cookie")
+	  cookieJar.DestroyCookie(w, AuthSession)
+	}
         db := DBSession{DB.Copy()}
         defer db.Close()
         var result User
@@ -28,10 +38,15 @@ func AuthMiddleware(h goji.Handler) goji.Handler {
           log.Println(err)
           cookieJar.DestroyCookie(w, AuthSession)
         } else {
-          user = &result
+	  if !bytes.Equal(result.Hashed_password, hashed) {
+	    log.Println("Invalid cookie password hashsum:", username)
+	    cookieJar.DestroyCookie(w, AuthSession)
+	  } else {
+	    user = &result
+	  }
         }
       }
-      ctx := context.WithValue(c, "currentUser", user)
+      ctx := context.WithValue(c, userKey, user)
       h.ServeHTTPC(ctx, w, r)
     },
   )
@@ -50,8 +65,12 @@ func RequireAuth(h goji.HandlerFunc) goji.Handler {
   )
 }
 
+func CurrentUser(c context.Context) *User {
+  user := c.Value(userKey).(*User)
+  return user
+}
+
 func isLogin(c context.Context) bool {
-  user := c.Value("currentUser").(*User)
-  return user != nil
+  return CurrentUser(c) != nil
 }
 

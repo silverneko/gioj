@@ -31,7 +31,7 @@ func DiscussNewHandler(c context.Context, w http.ResponseWriter, r *http.Request
   if len(post.Content) > 512 {
     post.Content = post.Content[:512]
   }
-  user := c.Value("currentUser").(*User)
+  user := CurrentUser(c)
   db := DBSession{DB.Copy()}
   defer db.Close()
   err := db.C("discuss").Insert(bson.M{"content": post.Content, "username": user.Username})
