@@ -6,6 +6,7 @@ import (
   "net/http"
   "golang.org/x/net/context"
   "github.com/russross/blackfriday"
+  "gopkg.in/mgo.v2/bson"
 )
 
 var tmpls = make(map[string]*template.Template)
@@ -37,6 +38,16 @@ func registerTemplate(name... string) {
   tmpl := template.New("layout.html.tmpl").Funcs(template.FuncMap{
     "markdown": func (s string) template.HTML {
       return template.HTML(blackfriday.MarkdownCommon([]byte(s)))
+    },
+    "truncate": func (s string, l int) string {
+      if len(s) > l {
+	return s[:l]
+      } else {
+	return s
+      }
+    },
+    "time": func (id bson.ObjectId) string {
+      return id.Time().Format("2006/01/02 15:04")
     },
   })
   tmpl.ParseFiles("templates/layout.html.tmpl")

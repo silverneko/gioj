@@ -68,6 +68,8 @@ type Problem struct {
   Name string
   Content string
   AuthorName string `bson:"authorname"`
+  Memlimit int
+  Timelimit int
 }
 
 type DiscussPost struct {

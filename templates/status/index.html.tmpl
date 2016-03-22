@@ -8,6 +8,7 @@
       <th>Verdict</th>
       <th>Username</th>
       <th>Lang</th>
+      <th>Time</th>
     </tr>
   </thead>
   <tbody>
@@ -18,6 +19,7 @@
       <td>{{.Verdict}}</td>
       <td>{{.Username}}</td>
       <td>{{.Lang}}</td>
+      <td>{{time .ID}}</td>
     </tr>
   {{ end }}
   </tbody>
