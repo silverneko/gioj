@@ -47,7 +47,7 @@ func registerTemplate(name... string) {
       }
     },
     "time": func (id bson.ObjectId) string {
-      return id.Time().Format("2006/01/02 15:04")
+      return id.Time().Format("2006/01/02 15:04:05")
     },
   })
   tmpl.ParseFiles("templates/layout.html.tmpl")

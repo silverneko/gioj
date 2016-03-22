@@ -1,9 +1,16 @@
 {{ define "_form" }}
 {{ if .Data }}
-<form action="/problems/{{.Data.ID}}/edit" method="post">
+<form action="/problems/{{.Data.ID}}/edit" method="post" enctype="multipart/form-data">
 {{ else }}
-<form action="/problems/new" method="post">
+<form action="/problems/new" method="post" enctype="multipart/form-data">
 {{ end }}
+  <label for="Timelimit">Timelimit:</label>
+  <input type="text" id="Timelimit" name="Timelimit" {{if .Data}}value="{{.Data.Timelimit}}"{{end}}><br>
+  <label for="Memlimit">Memlimit:</label>
+  <input type="text" id="Memlimit" name="Memlimit" {{if .Data}}value="{{.Data.Memlimit}}"{{end}}><br>
+  <label for="TestdataFile">Testdata:</label>
+  <input type="file" id="TestdataFile" name="TestdataFile"><br>
+  <input type="hidden" name="Testdata" {{if .Data}}value="{{.Data.Testdata}}"{{end}}>
   <label for="Name">Name:</label>
   <input type="text" id="Name" name="Name" {{if .Data}}value="{{.Data.Name}}"{{end}}><br>
   <label for="Content">Content:</label>

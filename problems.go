@@ -8,6 +8,8 @@ import (
   "golang.org/x/net/context"
   "log"
   "strconv"
+  "os"
+  "io"
 )
 
 // GET /problems
@@ -44,8 +46,9 @@ func ProblemNewHandler(c context.Context, w http.ResponseWriter, r *http.Request
 // POST /problems/new
 func ProblemNewHandlerP(c context.Context, w http.ResponseWriter, r *http.Request) {
   user := CurrentUser(c)
+  r.ParseMultipartForm(5 * (2 << 20))
   var problem Problem
-  Decode(&problem, r)
+  decoder.Decode(&problem, r.MultipartForm.Value)
   problem.AuthorName = user.Username
   db := DBSession{DB.Copy()}
   defer db.Close()
@@ -61,19 +64,34 @@ func ProblemNewHandlerP(c context.Context, w http.ResponseWriter, r *http.Reques
     return
   }
   problem.ID = idx.Seq
-  err = db.C("problems").Insert(bson.M{
-    "_id": problem.ID,
-    "name": problem.Name,
-    "content": problem.Content,
-    "authorname": problem.AuthorName,
-  })
-  if err != nil {
+
+  pids := strconv.Itoa(problem.ID)
+  file, _, err := r.FormFile("TestdataFile")
+  if err == nil {
+    defer file.Close()
+    path := "./td/" + pids
+    os.MkdirAll(path, 0700)
+    pathname := path + "/td" + pids + ".zip"
+    f, err := os.Create(pathname)
+    if err != nil {
+      http.Error(w, "500", 500)
+      return
+    }
+    defer f.Close()
+    if _, err := io.Copy(f, file); err != nil {
+      http.Error(w, "500", 500)
+      return
+    }
+    problem.Testdata = pathname
+  }
+
+
+  if err := db.C("problems").Insert(problem); err != nil {
     log.Println("Problem create: ", err)
     http.Error(w, "500", 500)
     return
   }
-  pid := strconv.Itoa(problem.ID)
-  http.Redirect(w, r, "/problems/" + pid, 302)
+  http.Redirect(w, r, "/problems/" + pids, 302)
 }
 // GET /problems/:id/edit
 func ProblemEditHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
@@ -100,9 +118,31 @@ func ProblemEditHandlerP(c context.Context, w http.ResponseWriter, r *http.Reque
     http.Error(w, "500", 500)
     return
   }
+  r.ParseMultipartForm(5 * (2 << 20))
   var problem Problem
-  Decode(&problem, r)
+  decoder.Decode(&problem, r.MultipartForm.Value)
   problem.ID = pid
+  problem.AuthorName = CurrentUser(c).Username
+
+  file, _, err := r.FormFile("TestdataFile")
+  if err == nil {
+    defer file.Close()
+    path := "./td/" + pids
+    os.MkdirAll(path, 0700)
+    pathname := path + "/td" + pids + ".zip"
+    f, err := os.Create(pathname)
+    if err != nil {
+      http.Error(w, "500", 500)
+      return
+    }
+    defer f.Close()
+    if _, err := io.Copy(f, file); err != nil {
+      http.Error(w, "500", 500)
+      return
+    }
+    problem.Testdata = pathname
+  }
+
   db := DBSession{DB.Copy()}
   defer db.Close()
   if _, err := db.C("problems").Upsert(bson.M{"_id": pid}, bson.M{"$set": problem}); err != nil {

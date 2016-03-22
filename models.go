@@ -70,6 +70,7 @@ type Problem struct {
   AuthorName string `bson:"authorname"`
   Memlimit int
   Timelimit int
+  Testdata string
 }
 
 type DiscussPost struct {

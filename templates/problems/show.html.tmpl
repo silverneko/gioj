@@ -6,6 +6,11 @@
 <h1>Problem <strong>#{{.Data.ID}}</strong></h1>
 <h2>{{.Data.Name}}</h2>
 <div>
+  <p>Timelimit: {{.Data.Timelimit}}</p>
+  <p>Memlimit: {{.Data.Memlimit}}</p>
+  <p>Testdata: {{.Data.Testdata}}</p>
+</div>
+<div>
   <p>{{markdown .Data.Content}}</p>
 </div>
 <div>
