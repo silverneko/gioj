@@ -47,6 +47,7 @@ type verdict struct {
 
 const (
   QUEUED int = iota
+  JUDGING
   AC
   WA
   TLE

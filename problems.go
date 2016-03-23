@@ -9,6 +9,7 @@ import (
   "log"
   "strconv"
   "os"
+  "os/exec"
   "io"
 )
 
@@ -68,20 +69,21 @@ func ProblemNewHandlerP(c context.Context, w http.ResponseWriter, r *http.Reques
   pids := strconv.Itoa(problem.ID)
   file, _, err := r.FormFile("TestdataFile")
   if err == nil {
-    defer file.Close()
     path := "./td/" + pids
-    os.MkdirAll(path, 0700)
+    os.MkdirAll(path, 0755)
     pathname := path + "/td" + pids + ".zip"
     f, err := os.Create(pathname)
     if err != nil {
       http.Error(w, "500", 500)
       return
     }
-    defer f.Close()
     if _, err := io.Copy(f, file); err != nil {
       http.Error(w, "500", 500)
       return
     }
+    file.Close()
+    f.Close()
+    exec.Command("unzip", pathname, "-d"+path).Run()
     problem.Testdata = pathname
   }
 
@@ -126,20 +128,21 @@ func ProblemEditHandlerP(c context.Context, w http.ResponseWriter, r *http.Reque
 
   file, _, err := r.FormFile("TestdataFile")
   if err == nil {
-    defer file.Close()
     path := "./td/" + pids
-    os.MkdirAll(path, 0700)
+    os.MkdirAll(path, 0755)
     pathname := path + "/td" + pids + ".zip"
     f, err := os.Create(pathname)
     if err != nil {
       http.Error(w, "500", 500)
       return
     }
-    defer f.Close()
     if _, err := io.Copy(f, file); err != nil {
       http.Error(w, "500", 500)
       return
     }
+    file.Close()
+    f.Close()
+    exec.Command("unzip", pathname, "-d"+path).Run()
     problem.Testdata = pathname
   }
 
