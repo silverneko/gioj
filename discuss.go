@@ -5,14 +5,15 @@ import (
   "golang.org/x/net/context"
   "gopkg.in/mgo.v2/bson"
   "log"
+  "github.com/silverneko/gioj/models"
 )
 
 // GET /discuss
 func DiscussHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
-  db := DBSession{DB.Copy()}
+  db := models.DBSession{DB.Copy()}
   defer db.Close()
   it := db.C("discuss").Find(nil).Sort("-_id").Limit(50).Iter()
-  var discussPosts []DiscussPost
+  var discussPosts []models.DiscussPost
   if err := it.All(&discussPosts); err != nil {
     log.Println("Discuss index: ", err)
   }
@@ -21,7 +22,7 @@ func DiscussHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
 
 // POST /discuss/new
 func DiscussNewHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
-  var post DiscussPost
+  var post models.DiscussPost
   Decode(&post, r)
   if post.Content == "" {
     // Do nothing
@@ -32,7 +33,7 @@ func DiscussNewHandler(c context.Context, w http.ResponseWriter, r *http.Request
     post.Content = post.Content[:512]
   }
   user := CurrentUser(c)
-  db := DBSession{DB.Copy()}
+  db := models.DBSession{DB.Copy()}
   defer db.Close()
   err := db.C("discuss").Insert(bson.M{"content": post.Content, "username": user.Username})
   if err != nil {

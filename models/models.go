@@ -1,4 +1,4 @@
-package main
+package models
 
 import (
   "gopkg.in/mgo.v2"
@@ -6,7 +6,7 @@ import (
   "log"
 )
 
-type DBSession struct {
+type DBSession struct{
   *mgo.Session
 }
 
@@ -14,7 +14,7 @@ func (s DBSession) C(name string) *mgo.Collection {
   return s.DB("").C(name)
 }
 
-func EnsureDBIndices() error {
+func EnsureDBIndices(DB *mgo.Session) error {
   if err := DB.DB("").C("users").EnsureIndex(mgo.Index{
     Key: []string{"username"},
     Unique: true,
@@ -34,12 +34,12 @@ type Submission struct {
   ID bson.ObjectId  `bson:"_id"`
   Pid int
   Username string
-  Verdict verdict
+  Verdict Verdict
   Lang int
   Content string
 }
 
-type verdict struct {
+type Verdict struct {
   Result int
   Timeused int
   Memused int
@@ -50,9 +50,9 @@ const (
   JUDGING
   AC
   WA
+  RE
   TLE
   MLE
-  RE
   CE
   ERR
 )
@@ -72,6 +72,7 @@ type Problem struct {
   Memlimit int
   Timelimit int
   Testdata string
+  TestdataCount int `bson:"testdatacount"`
 }
 
 type DiscussPost struct {
@@ -96,3 +97,4 @@ const (
 func (u *User) IsAdmin() bool {
   return u.Role == ADMINROLE
 }
+

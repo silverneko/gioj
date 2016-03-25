@@ -7,9 +7,11 @@ import (
   "golang.org/x/net/context"
   "log"
   "bytes"
+  "github.com/silverneko/gioj/models"
 )
 
 type Key int
+
 const (
   userKey Key = iota
 )
@@ -17,7 +19,7 @@ const (
 func AuthMiddleware(h goji.Handler) goji.Handler {
   return goji.HandlerFunc(
     func (c context.Context, w http.ResponseWriter, r *http.Request) {
-      var user *User = nil
+      var user *models.User = nil
       var cookie []interface{}
       if err := cookieJar.GetCookie(r, AuthSession, &cookie); err != nil {
         /* Invalid cookie */
@@ -30,9 +32,9 @@ func AuthMiddleware(h goji.Handler) goji.Handler {
 	  log.Println("Invalid cookie")
 	  cookieJar.DestroyCookie(w, AuthSession)
 	}
-        db := DBSession{DB.Copy()}
+        db := models.DBSession{DB.Copy()}
         defer db.Close()
-        var result User
+        var result models.User
         if err := db.C("users").Find(bson.M{"username": username}).One(&result); err != nil {
           /* username don't exist in db */
           log.Println(err)
@@ -65,8 +67,8 @@ func RequireAuth(h goji.HandlerFunc) goji.Handler {
   )
 }
 
-func CurrentUser(c context.Context) *User {
-  user := c.Value(userKey).(*User)
+func CurrentUser(c context.Context) *models.User {
+  user := c.Value(userKey).(*models.User)
   return user
 }
 

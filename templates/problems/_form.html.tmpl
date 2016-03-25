@@ -1,20 +1,22 @@
 {{ define "_form" }}
-{{ if .Data }}
-<form action="/problems/{{.Data.ID}}/edit" method="post" enctype="multipart/form-data">
-{{ else }}
+{{ if eq .Data.ID 0 }}
 <form action="/problems/new" method="post" enctype="multipart/form-data">
+{{ else }}
+<form action="/problems/{{.Data.ID}}/edit" method="post" enctype="multipart/form-data">
 {{ end }}
   <label for="Timelimit">Timelimit:</label>
-  <input type="text" id="Timelimit" name="Timelimit" {{if .Data}}value="{{.Data.Timelimit}}"{{end}}><br>
+  <input type="text" id="Timelimit" name="Timelimit" value="{{.Data.Timelimit}}"><br>
   <label for="Memlimit">Memlimit:</label>
-  <input type="text" id="Memlimit" name="Memlimit" {{if .Data}}value="{{.Data.Memlimit}}"{{end}}><br>
-  <label for="TestdataFile">Testdata:</label>
+  <input type="text" id="Memlimit" name="Memlimit" value="{{.Data.Memlimit}}"><br>
+  <label for="TestdataCount">Testdata count: (Enter number of testdata)</label>
+  <input type="text" id="TestdataCount" name="TestdataCount" value="{{.Data.TestdataCount}}"><br>
+  <label for="TestdataFile">Testdata: (Upload a .zip archive with the structure of: testdata/1.in 1.out 2.in 2.out ...)</label>
   <input type="file" id="TestdataFile" name="TestdataFile"><br>
-  <input type="hidden" name="Testdata" {{if .Data}}value="{{.Data.Testdata}}"{{end}}>
+  <input type="hidden" name="Testdata" value="{{.Data.Testdata}}">
   <label for="Name">Name:</label>
-  <input type="text" id="Name" name="Name" {{if .Data}}value="{{.Data.Name}}"{{end}}><br>
+  <input type="text" id="Name" name="Name" value="{{.Data.Name}}"><br>
   <label for="Content">Content:</label>
-  <textarea id="Content" name="Content">{{if .Data}}{{.Data.Content}}{{end}}</textarea>
+  <textarea id="Content" name="Content">{{.Data.Content}}</textarea>
   <input type="submit" value="Submit">
 </form>
 

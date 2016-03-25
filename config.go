@@ -8,6 +8,7 @@ import (
   "gopkg.in/mgo.v2"
   "log"
   _ "os"
+  "github.com/silverneko/gioj/models"
 )
 
 var decoder = schema.NewDecoder()
@@ -53,8 +54,7 @@ func init() {
     log.Fatal("mgo.Dial: ", err)
   }
 
-  err = EnsureDBIndices()
-  if err != nil {
+  if err := models.EnsureDBIndices(DB); err != nil {
     log.Fatal("mgo.EnsureIndex: ", err)
   }
 }

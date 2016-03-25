@@ -11,14 +11,15 @@ import (
   "os"
   "os/exec"
   "io"
+  "github.com/silverneko/gioj/models"
 )
 
 // GET /problems
 func ProblemsHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
-  db := DBSession{DB.Copy()}
+  db := models.DBSession{DB.Copy()}
   defer db.Close()
   it := db.C("problems").Find(nil).Sort("_id").Limit(50).Iter()
-  var problems []Problem
+  var problems []models.Problem
   if err := it.All(&problems); err != nil {
     log.Println("Problems index: ", err)
   }
@@ -31,9 +32,9 @@ func ProblemHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
     http.Error(w, "500", 500)
     return
   }
-  db := DBSession{DB.Copy()}
+  db := models.DBSession{DB.Copy()}
   defer db.Close()
-  var problem Problem
+  var problem models.Problem
   if err := db.C("problems").Find(bson.M{"_id": pid}).One(&problem); err != nil {
     http.Error(w, "500", 500)
     return
@@ -42,18 +43,18 @@ func ProblemHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
 }
 // GET /problems/new
 func ProblemNewHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
-  render("problems/new.html", c, w, "")
+  render("problems/new.html", c, w, new(models.Problem))
 }
 // POST /problems/new
 func ProblemNewHandlerP(c context.Context, w http.ResponseWriter, r *http.Request) {
   user := CurrentUser(c)
   r.ParseMultipartForm(5 * (2 << 20))
-  var problem Problem
+  var problem models.Problem
   decoder.Decode(&problem, r.MultipartForm.Value)
   problem.AuthorName = user.Username
-  db := DBSession{DB.Copy()}
+  db := models.DBSession{DB.Copy()}
   defer db.Close()
-  var idx Idx
+  var idx models.Idx
   _, err := db.C("counters").Find(bson.M{"_id": "problems"}).Apply(mgo.Change{
     Update: bson.M{"$inc": bson.M{"seq": 1}},
     Upsert: true,
@@ -102,8 +103,8 @@ func ProblemEditHandler(c context.Context, w http.ResponseWriter, r *http.Reques
     http.Error(w, "500", 500)
     return
   }
-  var problem Problem
-  db := DBSession{DB.Copy()}
+  var problem models.Problem
+  db := models.DBSession{DB.Copy()}
   defer db.Close()
   if err := db.C("problems").Find(bson.M{"_id": pid}).One(&problem); err != nil {
     log.Println("Edit problem: ", err)
@@ -121,7 +122,7 @@ func ProblemEditHandlerP(c context.Context, w http.ResponseWriter, r *http.Reque
     return
   }
   r.ParseMultipartForm(5 * (2 << 20))
-  var problem Problem
+  var problem models.Problem
   decoder.Decode(&problem, r.MultipartForm.Value)
   problem.ID = pid
   problem.AuthorName = CurrentUser(c).Username
@@ -146,7 +147,7 @@ func ProblemEditHandlerP(c context.Context, w http.ResponseWriter, r *http.Reque
     problem.Testdata = pathname
   }
 
-  db := DBSession{DB.Copy()}
+  db := models.DBSession{DB.Copy()}
   defer db.Close()
   if _, err := db.C("problems").Upsert(bson.M{"_id": pid}, bson.M{"$set": problem}); err != nil {
     log.Println("Problem update: ", err, pid)

@@ -8,6 +8,8 @@ import (
   "os"
   "golang.org/x/net/websocket"
   "encoding/json"
+  "strconv"
+  "github.com/silverneko/gioj/models"
 )
 
 func main() {
@@ -15,16 +17,24 @@ func main() {
 
   os.RemoveAll("/tmp/gioj-judge")
   os.Mkdir("/tmp/gioj-judge", 0755)
+
+  bufferSize := 2
+  workQueue := make(chan *models.Submission, bufferSize)
+
+  /* spawn two workers */
+  go worker(workQueue, 1)
+  go worker(workQueue, 2)
+
   for {
-    db := DBSession{DB.Copy()}
-    var submission Submission
+    db := models.DBSession{DB.Copy()}
+    var submission models.Submission
     _, err := db.C("submissions").
-      Find(bson.M{"verdict.result": QUEUED}).
+      Find(bson.M{"verdict.result": models.QUEUED}).
       Sort("_id").
-      Apply(mgo.Change{Update: bson.M{"$set": bson.M{"verdict.result": JUDGING}}}, &submission)
+      Apply(mgo.Change{Update: bson.M{"$set": bson.M{"verdict.result": models.JUDGING}}}, &submission)
     if err == nil {
       log.Println("Recieved: ", submission.ID.Hex())
-      go judge(&submission)
+      workQueue <- &submission
     } else {
       log.Println("Nothing to judge")
       time.Sleep(5 * time.Second)
@@ -33,7 +43,15 @@ func main() {
   }
 }
 
-func judge(submission *Submission) {
+func worker(c <-chan *models.Submission, workerId int) {
+  for {
+    submission := <-c
+    log.Println("Worker: ", workerId)
+    judge(submission)
+  }
+}
+
+func judge(submission *models.Submission) {
   path := "/tmp/gioj-judge/" + submission.ID.Hex()
   os.Mkdir(path, 0755)
   filename := path + "/test.cpp"
@@ -46,7 +64,17 @@ func judge(submission *Submission) {
   f.WriteString(submission.Content)
   f.Close()
 
-  cf, _ := websocket.NewConfig("ws://localhost:2501/judge", "http://localhost:5050/")
+  db := models.DBSession{DB.Copy()}
+  defer db.Close()
+
+  var problem models.Problem
+  err = db.C("problems").Find(bson.M{"_id": submission.Pid}).One(&problem)
+  if err != nil {
+    log.Println("Problem retrieve: ", err)
+    return
+  }
+
+  cf, _ := websocket.NewConfig("ws://localhost:2501/judge", "http://localhost:5050")
   ws, err := websocket.DialConfig(cf)
   if err != nil {
     log.Println("Ws create: ", err)
@@ -54,38 +82,82 @@ func judge(submission *Submission) {
   }
   defer ws.Close()
 
+  dataset := make([]int, problem.TestdataCount)
+  for i, _ := range dataset {
+    dataset[i] = i+1
+  }
   msg, _ := json.Marshal(map[string]interface{}{
-    //"chal_id": submission.ID.Hex(),
-    "chal_id": 1,
+    "chal_id": 1,  // What number is this doesn't really matter
     "code_path": filename,
-    "res_path": "/home/silvernegi/Projects/gioj/td/1",
+    "res_path": "/home/silvernegi/Projects/gioj/td/" + strconv.Itoa(submission.Pid),
     "comp_type": "g++",
     "check_type": "diff",
     "metadata": "",
     "test": []map[string]interface{}{
       {
 	"test_idx": 1,
-	"timelimit": 1000,
-	"memlimit": 64 * 2 << 20,
+	"timelimit": problem.Timelimit,
+	"memlimit": problem.Memlimit * 2 << 10,
 	"metadata": map[string]interface{}{
-	  "data": []int{1},
+	  "data": dataset,
 	},
       },
     },
   })
   ws.Write(msg)
-  //log.Println(string(msg))
 
   rcv := make([]byte, 2 << 20)
-  ws.Read(rcv)
+  n, err := ws.Read(rcv)
+  rcv = rcv[:n]
+
+  var response Response
+  err = json.Unmarshal(rcv, &response)
+  log.Println(err)
   log.Println(string(rcv))
 
-  var result verdict
-  db := DBSession{DB.Copy()}
-  defer db.Close()
+  var result models.Verdict
+  var status int = STATUS_NONE
+  for _, res := range response.Result {
+    if res.Peakmem > result.Memused {
+      result.Memused = res.Peakmem
+    }
+    if res.State > status {
+      status = res.State
+    }
+    result.Timeused += res.Runtime
+  }
+  switch status {
+    case STATUS_NONE, STATUS_ERR:
+      result.Result = models.ERR
+    case STATUS_AC:
+      result.Result = models.AC
+    case STATUS_WA:
+      result.Result = models.WA
+    case STATUS_RE:
+      result.Result = models.RE
+    case STATUS_TLE:
+      result.Result = models.TLE
+    case STATUS_MLE:
+      result.Result = models.MLE
+    case STATUS_CE:
+      result.Result = models.CE
+  }
+
   err = db.C("submissions").Update(bson.M{"_id": submission.ID}, bson.M{"$set": bson.M{"verdict": result}})
   if err != nil {
     log.Println("Judge Error: ", err)
+    return
+  }
+}
+
+type Response struct {
+  Verdict string
+  Result []struct{
+    Test_idx int
+    State int
+    Runtime int
+    Peakmem int
+    Verdict string
   }
 }
 
@@ -105,55 +177,14 @@ func init() {
 
 }
 
-type DBSession struct {
-  *mgo.Session
-}
-
-func (s DBSession) C(name string) *mgo.Collection {
-  return s.DB("").C(name)
-}
-
-type Submission struct {
-  ID bson.ObjectId  `bson:"_id"`
-  Pid int
-  Username string
-  Verdict verdict
-  Lang int
-  Content string
-}
-
-type verdict struct {
-  Result int
-  Timeused int
-  Memused int
-}
-
 const (
-  QUEUED int = iota
-  JUDGING
-  AC
-  WA
-  TLE
-  MLE
-  RE
-  CE
-  ERR
+  STATUS_NONE int = iota
+  STATUS_AC
+  STATUS_WA
+  STATUS_RE
+  STATUS_TLE
+  STATUS_MLE
+  STATUS_CE
+  STATUS_ERR
 )
-
-const (
-  LANGCPP int = iota
-  LANGC
-  LANGGHC
-  LANGSIZE
-)
-
-type Problem struct {
-  ID int   `bson:"_id"`
-  Name string
-  Content string
-  AuthorName string `bson:"authorname"`
-  Memlimit int
-  Timelimit int
-  Testdata string
-}
 

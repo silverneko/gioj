@@ -7,12 +7,13 @@ import (
   "golang.org/x/net/context"
   "golang.org/x/crypto/bcrypt"
   "log"
+  "github.com/silverneko/gioj/models"
 )
 
 func UserIndexHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
-  db := DBSession{DB.Copy()}
+  db := models.DBSession{DB.Copy()}
   defer db.Close()
-  var users []User
+  var users []models.User
   if err := db.C("users").Find(nil).All(&users); err != nil {
     log.Println("Users index: ", err)
     http.Error(w, "500", 500)
@@ -27,9 +28,9 @@ func UserHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
     http.Error(w, "500", 500)
     return
   }
-  db := DBSession{DB.Copy()}
+  db := models.DBSession{DB.Copy()}
   defer db.Close()
-  var result User
+  var result models.User
   if err := db.C("users").Find(bson.M{"username": username}).One(&result); err != nil {
     /* username don't exist in db */
     http.Error(w, "500", 500)
@@ -45,9 +46,9 @@ func UserEditHandler(c context.Context, w http.ResponseWriter, r *http.Request) 
     http.Redirect(w, r, "/", 302)
     return
   }
-  db := DBSession{DB.Copy()}
+  db := models.DBSession{DB.Copy()}
   defer db.Close()
-  var user User
+  var user models.User
   if err := db.C("users").Find(bson.M{"username": username}).One(&user); err != nil {
     log.Println("User find: ", err, username)
     http.Error(w, "500", 500)
@@ -70,12 +71,12 @@ func AdminEditHandler(c context.Context, w http.ResponseWriter, r *http.Request)
   var form UserEditForm
   Decode(&form, r)
   name, newpwd, role := form.Name, form.New_password, form.Role
-  if role != USERROLE && role != ADMINROLE {
-    role = USERROLE
+  if role != models.USERROLE && role != models.ADMINROLE {
+    role = models.USERROLE
   }
-  db := DBSession{DB.Copy()}
+  db := models.DBSession{DB.Copy()}
   defer db.Close()
-  var user User
+  var user models.User
   if err := db.C("users").Find(bson.M{"username": username}).One(&user); err != nil {
     log.Println("User find: ", err, username)
     http.Error(w, "500", 500)
@@ -140,7 +141,7 @@ func UserEditHandlerP(c context.Context, w http.ResponseWriter, r *http.Request)
       return
     }
   }
-  db := DBSession{DB.Copy()}
+  db := models.DBSession{DB.Copy()}
   defer db.Close()
   if err := db.C("users").Update(bson.M{"_id": user.ID}, user); err != nil {
     log.Println("User update: ", err, user.ID)
@@ -188,9 +189,9 @@ func AuthHandler(c context.Context, w http.ResponseWriter, r * http.Request) {
     return
   }
 
-  db := DBSession{DB.Copy()}
+  db := models.DBSession{DB.Copy()}
   defer db.Close()
-  var result User
+  var result models.User
   if err := db.C("users").Find(bson.M{"username": username}).One(&result); err != nil {
     /* User not found */
     render("user/login_form.html", c, w, "", "Username not found!")
@@ -240,13 +241,13 @@ func RegisterHandlerP(c context.Context, w http.ResponseWriter, r * http.Request
     return
   }
   hashed, _ := bcrypt.GenerateFromPassword([]byte(password), 10)
-  db := DBSession{DB.Copy()}
+  db := models.DBSession{DB.Copy()}
   defer db.Close()
   if err := db.C("users").Insert(bson.M{
     "name": name,
     "username": username,
     "hashed_password": hashed,
-    "role": USERROLE,
+    "role": models.USERROLE,
   }); err != nil {
     render("user/register_form.html", c, w, "", "Cannot use this username!")
     return
