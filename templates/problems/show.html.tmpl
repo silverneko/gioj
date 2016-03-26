@@ -1,19 +1,67 @@
 {{ define "yield" }}
-<a href="/problems">Problems Index</a>
-| <a href="/problems/{{.Data.ID}}/submit">Submit</a>
-| <a href="/problems/{{.Data.ID}}/edit">Edit</a>
-| <a href="/problems/{{.Data.ID}}/status">Status</a>
-<h1>Problem <strong>#{{.Data.ID}}</strong></h1>
-<h2>{{.Data.Name}}</h2>
+<a class="btn btn-default" href="/problems">Problems Index</a>
+<a class="btn btn-default" href="/problems/{{.Data.ID}}/submit">Submit</a>
+<a class="btn btn-default" href="/problems/{{.Data.ID}}/status">Status</a>
+<a class="btn btn-default" href="/problems/{{.Data.ID}}/edit">Edit</a>
+
+<h1>{{.Data.Name}}</h1>
 <div>
-  <p>Timelimit: {{.Data.Timelimit}}</p>
-  <p>Memlimit: {{.Data.Memlimit}}</p>
-  <p>Testdata: {{.Data.Testdata}}</p>
+  Timelimit: {{.Data.Timelimit}} ms <br>
+  Memlimit: {{.Data.Memlimit}} KiB
 </div>
+
 <div>
-  <p>{{markdown .Data.Content}}</p>
+  {{markdown .Data.Content}}
 </div>
 <div>
   <a href="/user/{{.Data.AuthorName}}">{{.Data.AuthorName}}</a>
 </div>
+<hr>
+
+<h3>Submit</h3>
+<form id="code-submit-form" action="/problems/{{.Data.ID}}/submit" method="post">
+  <div class="form-group">
+    <select class="form-control" id="Lang" name="Lang">
+      <option value="0" selected="selected">c++14 (g++)</option>
+      <option value="1">c++14 (clang++)</option>
+      <option value="2">python3</option>
+      <option value="3">ghc</option>
+    </select>
+  </div>
+  <textarea id="Content" name="Content"></textarea>
+  <pre id="editor"></pre>
+  <button type="submit" class="btn btn-default" id="problem-submit">Submit</button>
+</form>
+
+<style>
+#editor {
+  position: relative;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/ace/1.2.3/min/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+    var textarea = $('textarea[name="Content"]').hide();
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/twilight");
+    editor.setOptions({minLines:20,maxLines:Infinity,showPrintMargin:false,fontSize: "14pt"});
+    editor.getSession().setMode("ace/mode/c_cpp");
+    $('#problem-submit').click(function(){
+      $('#Content').val(editor.getSession().getValue());
+      return $('#code-submit-form').submit();
+    });
+    $('#Lang').change(function() {
+      var lang = $('#Lang option:selected').val()
+      if (lang === "0" || lang === '1') {
+        editor.getSession().setMode("ace/mode/c_cpp");
+      }
+      if (lang === "2") {
+        editor.getSession().setMode("ace/mode/python");
+      }
+      if (lang === "3") {
+        editor.getSession().setMode("ace/mode/haskell");
+      }
+      return;
+    });
+</script>
 {{ end }}

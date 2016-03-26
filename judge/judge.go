@@ -153,7 +153,7 @@ func judge(submission *models.Submission) {
       testCases = append(testCases, map[string]interface{}{
 	"test_idx": i+1,
 	"timelimit": problem.Timelimit,
-	"memlimit": problem.Memlimit * 2 << 10,
+	"memlimit": problem.Memlimit << 10,
 	"metadata": map[string]interface{}{
 	  "data": v,
 	},
@@ -186,7 +186,7 @@ func judge(submission *models.Submission) {
   if _, err := ws.Write(msg); err != nil {
     panic(err)
   }
-  rcv := make([]byte, 2 << 20)
+  rcv := make([]byte, 1 << 20)
   if n, err := ws.Read(rcv); err != nil {
     panic(err)
   } else {

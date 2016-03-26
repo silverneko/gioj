@@ -1,15 +1,28 @@
 {{ define "_form" }}
 {{ if eq .Data.ID 0 }}
-<form action="/problems/new" method="post" enctype="multipart/form-data">
+<form id="problem-form" action="/problems/new" method="post" enctype="multipart/form-data">
 {{ else }}
-<form action="/problems/{{.Data.ID}}/edit" method="post" enctype="multipart/form-data">
+<form id="problem-form" action="/problems/{{.Data.ID}}/edit" method="post" enctype="multipart/form-data">
 {{ end }}
-  <label for="Timelimit">Timelimit:</label>
-  <input type="text" id="Timelimit" name="Timelimit" value="{{.Data.Timelimit}}"><br>
-  <label for="Memlimit">Memlimit:</label>
-  <input type="text" id="Memlimit" name="Memlimit" value="{{.Data.Memlimit}}"><br>
+<div class="form-group">
+  <label for="Name">Problem name</label>
+  <input class="form-control" type="text" id="Name" name="Name" value="{{.Data.Name}}">
+</div>
+<div class="form-group">
+  <label for="Timelimit">Timelimit(ms)</label>
+  <input class="form-control" type="text" id="Timelimit" name="Timelimit" value="{{.Data.Timelimit}}">
+</div>
+<div class="form-group">
+  <label for="Memlimit">Memlimit(KiB)</label>
+  <input class="form-control" type="text" id="Memlimit" name="Memlimit" value="{{.Data.Memlimit}}">
+</div>
+<div class="form-group">
+  <label for="Content">Content</label> (you can use markdown and MathJax, in-line math:<code>$x$</code>)
+  <textarea id="Content" name="Content"></textarea>
+  <pre id="editor">{{.Data.Content}}</pre>
+</div>
   <div>
-    <h3>Format of testdata archive</h3>
+    <h2>Format of testdata archive</h2>
     <p>
       Should be a <code>.zip</code> archive with the structure of:
     </p>
@@ -34,29 +47,32 @@ testdata/
 }
 </pre>
   </div>
-  <label for="TestdataFile">Testdata:</label>
-  <input type="file" id="TestdataFile" name="TestdataFile"><br>
+<div class="form-group">
+  <label for="TestdataFile">Testdata</label>
+  {{if .Data.Testdata}}(uploaded){{else}}(not uploaded){{end}}
+  <input class="form-control" type="file" id="TestdataFile" name="TestdataFile">
+</div>
+<div class="form-group">
   <input type="hidden" name="Testdata" value="{{.Data.Testdata}}">
-  <label for="Name">Name:</label>
-  <input type="text" id="Name" name="Name" value="{{.Data.Name}}"><br>
-  <label for="Content">Content:</label>
-  <textarea id="Content" name="Content">{{.Data.Content}}</textarea>
-  <input type="submit" value="Submit">
+</div>
+  <button type="submit" class="btn btn-default" id="problem-submit">Submit</button>
 </form>
 
-<!--
-<div id="editor">function foo(items) {
-    var x = "All this is syntax highlighted";
-    return x;
-}</div>
--->
-
-
-
+<style>
+#editor {
+  position: relative;
+}
+</style>
 <script src="https://cdn.jsdelivr.net/ace/1.2.3/min/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>
+    var textarea = $('textarea[name="Content"]').hide();
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/monokai");
+    editor.setOptions({minLines:20,maxLines:Infinity,showPrintMargin:false,fontSize: "14pt"});
     editor.getSession().setMode("ace/mode/markdown");
+    $('#problem-submit').click(function(){
+      $('#Content').val(editor.getSession().getValue());
+      return $('#problem-form').submit();
+    });
 </script>
 {{ end }}

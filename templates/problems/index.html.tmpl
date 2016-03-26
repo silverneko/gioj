@@ -1,17 +1,17 @@
 {{ define "yield" }}
-<a href="/problems/new">New Problem</a>
-<h1>Problems</h1>
-<table>
+<a class="btn btn-default" href="/problems/new">New Problem</a>
+<h1>Problems #</h1>
+<table class="table table-striped">
   <thead>
     <tr>
-      <th>ID</th>
+      <th class="col-md-1 text-center">ID</th>
       <th>Name</th>
     </tr>
   </thead>
   <tbody>
   {{ range .Data }}
     <tr>
-      <td>{{.ID}}</td>
+      <td class="text-center">{{.ID}}</td>
       <td><a href="/problems/{{.ID}}">{{.Name}}</a></td>
     </tr>
   {{ end }}
