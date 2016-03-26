@@ -1,20 +1,43 @@
 {{ define "yield" }}
-<a href="/problems/{{.Data.Pid}}/status">Show problem status</a>
-| <a href="/status/{{.Data.ID.Hex}}/edit">Edit</a>
+<a class="btn btn-default" href="/problems/{{.Data.Pid}}">Show problem</a>
+<a class="btn btn-default" href="/problems/{{.Data.Pid}}/status">Show problem status</a>
+<a class="btn btn-default" href="/status/{{.Data.ID.Hex}}/edit">Edit</a>
+
 <h1>Submission <strong>#{{.Data.ID.Hex}}</strong></h1>
+
 <div>
-  {{.Data.Verdict}}
+  <a class="btn btn-link" href="/user/{{.Data.Username}}">{{.Data.Username}}</a>
+</div>
+{{with .Data.Verdict}}
+<div>
+  Verdict: {{humanVerdict .Result}}
 </div>
 <div>
-  {{.Data.Lang}}
+  Peak memory usage: {{.Memused}}
 </div>
 <div>
-  <pre>{{.Data.Content}}</pre>
+  Total time usage: {{.Timeused}}
 </div>
+{{end}}
 <div>
-  <a href="/user/{{.Data.Username}}">{{.Data.Username}}</a>
+  <pre class="editor" id="code-view">{{.Data.Content}}
+  </pre>
 </div>
-<div>
-  <a href="/problems/{{.Data.Pid}}">{{.Data.Pid}}</a>
-</div>
+
+<script>
+    var editor = ace.edit("code-view");
+    editor.setTheme("ace/theme/twilight");
+    editor.setOptions({maxLines:Infinity,showPrintMargin:false,fontSize: "14pt",readOnly:true});
+    editor.getSession().setMode("ace/mode/c_cpp");
+    var lang = "{{.Data.Lang}}"
+    if (lang === "0" || lang === '1') {
+      editor.getSession().setMode("ace/mode/c_cpp");
+    }
+    if (lang === "2") {
+      editor.getSession().setMode("ace/mode/python");
+    }
+    if (lang === "3") {
+      editor.getSession().setMode("ace/mode/haskell");
+    }
+</script>
 {{ end }}

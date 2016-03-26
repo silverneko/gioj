@@ -17,9 +17,9 @@
   <input class="form-control" type="text" id="Memlimit" name="Memlimit" value="{{.Data.Memlimit}}">
 </div>
 <div class="form-group">
-  <label for="Content">Content</label> (you can use markdown and MathJax, in-line math:<code>$x$</code>)
+  <label for="Content">Description</label> (you can use markdown and MathJax e.g. in-line math:<code>$x$</code>)
   <textarea id="Content" name="Content"></textarea>
-  <pre id="editor">{{.Data.Content}}</pre>
+  <pre class="editor" id="editor">{{.Data.Content}}</pre>
 </div>
   <div>
     <h2>Format of testdata archive</h2>
@@ -58,17 +58,11 @@ testdata/
   <button type="submit" class="btn btn-default" id="problem-submit">Submit</button>
 </form>
 
-<style>
-#editor {
-  position: relative;
-}
-</style>
-<script src="https://cdn.jsdelivr.net/ace/1.2.3/min/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>
     var textarea = $('textarea[name="Content"]').hide();
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/monokai");
-    editor.setOptions({minLines:20,maxLines:Infinity,showPrintMargin:false,fontSize: "14pt"});
+    editor.setOptions({minLines:5,maxLines:Infinity,showPrintMargin:false,fontSize: "14pt"});
     editor.getSession().setMode("ace/mode/markdown");
     $('#problem-submit').click(function(){
       $('#Content').val(editor.getSession().getValue());

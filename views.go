@@ -7,6 +7,7 @@ import (
   "golang.org/x/net/context"
   "github.com/russross/blackfriday"
   "gopkg.in/mgo.v2/bson"
+  "github.com/silverneko/gioj/models"
 )
 
 var tmpls = make(map[string]*template.Template)
@@ -48,6 +49,20 @@ func registerTemplate(name... string) {
     },
     "time": func (id bson.ObjectId) string {
       return id.Time().Format("2006/01/02 15:04:05")
+    },
+    "humanVerdict": func (verdict int) string {
+      switch verdict {
+	case models.QUEUED: return "Queued"
+	case models.JUDGING: return "Judging"
+	case models.AC: return "Accepted"
+	case models.WA: return "Wrong Answer"
+	case models.RE: return "Runtime Error"
+	case models.TLE: return "Time Limit Exceeded"
+	case models.MLE: return "Memory Limit Exceeded"
+	case models.CE: return "Compilation Error"
+	case models.ERR: fallthrough
+	default: return "Error"
+      }
     },
   })
   tmpl.ParseFiles("templates/layout.html.tmpl")

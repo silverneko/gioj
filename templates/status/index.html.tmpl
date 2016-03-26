@@ -1,24 +1,36 @@
 {{ define "yield" }}
 <h1>Status</h1>
-<table>
+<table class="table table-striped">
   <thead>
     <tr>
-      <th>ID</th>
+      <th class="text-center col-md-1">ID</th>
       <th>PID</th>
-      <th>Verdict</th>
       <th>Username</th>
-      <th>Lang</th>
+      <th>Verdict</th>
       <th>Time</th>
+      <th>Lang</th>
+      <th>Submitted at</th>
     </tr>
   </thead>
   <tbody>
   {{ range .Data }}
     <tr>
-      <td><a href="/status/{{.ID.Hex}}">{{.ID.Hex}}</a></td>
-      <td><a href="/problems/{{.Pid}}">{{.Pid}}</a></td>
-      <td>{{.Verdict}}</td>
-      <td>{{.Username}}</td>
-      <td>{{.Lang}}</td>
+      <td><a class="btn btn-link" href="/status/{{.ID.Hex}}">{{.ID.Hex}}</a></td>
+      <td><a class="btn btn-link" href="/problems/{{.Pid}}">{{.Pid}}</a></td>
+      <td><a class="btn btn-link" href="/user/{{.Username}}">{{.Username}}<a></td>
+      <td>{{humanVerdict .Verdict.Result}}</td>
+      <td>{{.Verdict.Timeused}}</td>
+      <td>
+      {{if eq .Lang 0}}
+        g++
+      {{else if eq .Lang 1}}
+        clang++
+      {{else if eq .Lang 2}}
+        python3
+      {{else}}
+        haskell
+      {{end}}
+      </td>
       <td>{{time .ID}}</td>
     </tr>
   {{ end }}

@@ -219,6 +219,7 @@ func judge(submission *models.Submission) {
     }
     result.Timeused += res.Runtime
   }
+  result.Memused >>= 10
   switch status {
     case STATUS_NONE, STATUS_ERR:
       result.Result = models.ERR
