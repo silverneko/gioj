@@ -1,11 +1,12 @@
 {{ define "yield" }}
 <h1>User <strong>{{ .Data.Username }}</strong></h1>
 <div>
-  Nickname: {{ .Data.Name }}
+  <h3>Nickname: {{ .Data.Name }}</h3>
 </div>
 {{ if or (eq .User.Username .Data.Username) (.User.IsAdmin)}}
+<hr>
 <div>
-  <a href="/user/{{ .Data.Username }}/edit">Edit</a>
+  <a class="btn btn-default" href="/user/{{ .Data.Username }}/edit">Edit</a>
 </div>
 {{ end }}
 {{ end }}

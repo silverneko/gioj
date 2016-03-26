@@ -1,11 +1,15 @@
 {{ define "yield" }}
 
 <form action="/login" method="post">
-  <label for="Username">Username:</label>
-  <input type="text" id="Username" name="username" autofocus="autofocus"><br>
-  <label for="Password">Password:</label>
-  <input type="password" id="Password" name="password"><br>
-  <input type="submit" value="Submit">
+  <div class="form-group">
+    <label for="Username">Username</label>
+    <input class="form-control" type="text" id="Username" name="username" autofocus="autofocus">
+  </div>
+  <div class="form-group">
+    <label for="Password">Password</label>
+    <input class="form-control" type="password" id="Password" name="password">
+  </div>
+  <button type="submit" class="btn btn-default">Sign in</button>
 </form>
 
 {{ end }}

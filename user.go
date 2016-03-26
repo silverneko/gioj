@@ -14,7 +14,7 @@ func UserIndexHandler(c context.Context, w http.ResponseWriter, r *http.Request)
   db := models.DBSession{DB.Copy()}
   defer db.Close()
   var users []models.User
-  if err := db.C("users").Find(nil).All(&users); err != nil {
+  if err := db.C("users").Find(nil).Sort("username").All(&users); err != nil {
     log.Println("Users index: ", err)
     http.Error(w, "500", 500)
     return
@@ -203,7 +203,6 @@ func AuthHandler(c context.Context, w http.ResponseWriter, r * http.Request) {
     render("user/login_form.html", c, w, "", "Wrong password!")
     return
   }
-  log.Println("User login: ", username)
   cookieJar.PutCookie(w, AuthSession, []interface{}{username, result.Hashed_password})
   http.Redirect(w, r, "/", http.StatusFound)
 }

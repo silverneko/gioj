@@ -13,7 +13,33 @@ import (
   "io/ioutil"
 )
 
+var DB *mgo.Session
+
+func init() {
+  var err error
+  DB, err = mgo.DialWithInfo(&mgo.DialInfo{
+    Addrs: []string{"localhost"},
+    Database: "gioj_test",
+    Username: "gioj",
+    Password: "gioj",
+  })
+  if err != nil {
+    log.Fatal("mgo.Dial: ", err)
+  }
+}
+
 var judgePath string
+
+const (
+  STATUS_NONE int = iota
+  STATUS_AC
+  STATUS_WA
+  STATUS_RE
+  STATUS_TLE
+  STATUS_MLE
+  STATUS_CE
+  STATUS_ERR
+)
 
 func main() {
   pid := os.Getpid()
@@ -135,11 +161,24 @@ func judge(submission *models.Submission) {
     }
   }
 
+  var comp_type string
+  switch submission.Lang {
+    default:
+      comp_type = "g++"
+    case models.LANGCPP:
+      comp_type = "g++"
+    case models.LANGCPPCLANG:
+      comp_type = "clang++"
+    case models.LANGPYTHON3:
+      comp_type = "python3"
+    case models.LANGGHC:
+      comp_type = "g++"
+  }
   msg, _ := json.Marshal(map[string]interface{}{
     "chal_id": 1,  // What number is this doesn't really matter
     "code_path": filename,
     "res_path": res_path,
-    "comp_type": "g++",
+    "comp_type": comp_type,
     "check_type": "diff",
     "metadata": "",
     "test": testCases,
@@ -154,7 +193,16 @@ func judge(submission *models.Submission) {
     rcv = rcv[:n]
   }
 
-  var response Response
+  var response struct {
+    Verdict string
+    Result []struct{
+      Test_idx int
+      State int
+      Runtime int
+      Peakmem int
+      Verdict string
+    }
+  }
   if err := json.Unmarshal(rcv, &response); err != nil {
     log.Println(err)
   }
@@ -192,41 +240,4 @@ func judge(submission *models.Submission) {
     panic(err)
   }
 }
-
-type Response struct {
-  Verdict string
-  Result []struct{
-    Test_idx int
-    State int
-    Runtime int
-    Peakmem int
-    Verdict string
-  }
-}
-
-var DB *mgo.Session
-
-func init() {
-  var err error
-  DB, err = mgo.DialWithInfo(&mgo.DialInfo{
-    Addrs: []string{"localhost"},
-    Database: "gioj_test",
-    Username: "gioj",
-    Password: "gioj",
-  })
-  if err != nil {
-    log.Fatal("mgo.Dial: ", err)
-  }
-}
-
-const (
-  STATUS_NONE int = iota
-  STATUS_AC
-  STATUS_WA
-  STATUS_RE
-  STATUS_TLE
-  STATUS_MLE
-  STATUS_CE
-  STATUS_ERR
-)
 

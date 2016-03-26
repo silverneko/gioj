@@ -1,6 +1,6 @@
 {{define "yield"}}
   <h1>Users Index</h1>
-  <table>
+  <table class="table table-striped">
     <thead>
       <tr>
         <th>Username</th>
@@ -10,8 +10,8 @@
     <tbody>
     {{range .Data}}
       <tr>
-        <th><a href="/user/{{.Username}}">{{.Username}}</a></th>
-        <th>{{.Name}}</th>
+        <td><a href="/user/{{.Username}}">{{.Username}}</a></td>
+        <td>{{.Name}}</td>
       </tr>
     {{end}}
     </tbody>

@@ -1,13 +1,21 @@
 {{ define "yield" }}
 <form action="/register" method="post">
-  <label for="name">Nickname:</label>
-  <input type="text" id="name" name="name"><br>
-  <label for="Username">Username:</label>
-  <input type="text" id="Username" name="username"><br>
-  <label for="Password">Password:</label>
-  <input type="password" id="Password" name="password"><br>
-  <label for="Confirm_Password">Confirm Password:</label>
-  <input type="password" id="Confirm_Password" name="confirm_password"><br>
-  <input type="submit" value="Submit">
+  <div class="form-group">
+    <label for="name">Nickname</label>
+    <input class="form-control" type="text" id="name" name="name">
+  </div>
+  <div class="form-group">
+    <label for="Username">Username</label>
+    <input class="form-control" type="text" id="Username" name="username">
+  </div>
+  <div class="form-group">
+    <label for="Password">Password</label>
+    <input class="form-control" type="password" id="Password" name="password">
+  </div>
+  <div class="form-group">
+    <label for="Confirm_Password">Confirm Password</label>
+    <input class="form-control" type="password" id="Confirm_Password" name="confirm_password">
+  </div>
+  <button type="submit" class="btn btn-default">Sign up</button>
 </form>
 {{ end }}

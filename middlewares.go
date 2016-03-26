@@ -23,7 +23,7 @@ func AuthMiddleware(h goji.Handler) goji.Handler {
       var cookie []interface{}
       if err := cookieJar.GetCookie(r, AuthSession, &cookie); err != nil {
         /* Invalid cookie */
-        log.Println(err)
+        //log.Println(err)
         cookieJar.DestroyCookie(w, AuthSession)
       } else {
 	username, ok1 := cookie[0].(string)
@@ -37,11 +37,11 @@ func AuthMiddleware(h goji.Handler) goji.Handler {
         var result models.User
         if err := db.C("users").Find(bson.M{"username": username}).One(&result); err != nil {
           /* username don't exist in db */
-          log.Println(err)
+          //log.Println(err)
           cookieJar.DestroyCookie(w, AuthSession)
         } else {
 	  if !bytes.Equal(result.Hashed_password, hashed) {
-	    log.Println("Invalid cookie password hashsum:", username)
+	    //log.Println("Invalid cookie password hashsum:", username)
 	    cookieJar.DestroyCookie(w, AuthSession)
 	  } else {
 	    user = &result

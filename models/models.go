@@ -59,7 +59,8 @@ const (
 
 const (
   LANGCPP int = iota
-  LANGC
+  LANGCPPCLANG
+  LANGPYTHON3
   LANGGHC
   LANGSIZE
 )

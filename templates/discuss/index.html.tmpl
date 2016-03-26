@@ -1,19 +1,25 @@
 {{ define "yield" }}
 <h1>Discuss</h1>
 
-<form action="/discuss/new" method="post">
-  <label for="content">msg:</label>
-  <input type="text" id="content" name="Content" autofocus="autofocus">
-  <input type="submit" value="Submit"/>
-</form>
-
-{{ range .Data }}
-<div class="row">
-  <div class="col-md-12">
-    <p>{{ .Content }}</p>
-    <p>{{time .ID}}</p>
-    <a href="/user/{{.Username}}">{{ .Username }}</a>
+<form class="form-inline" action="/discuss/new" method="post">
+  <div class="form-group">
+    <input type="text" class="form-control" id="content" name="Content" autofocus="autofocus" placeholder="type message here..." autocomplete="off">
   </div>
-</div>
-{{ end }}
+  <button type="submit" class="btn btn-default">Murmur</button>
+</form>
+<hr>
+
+<table class="table table-striped">
+  <tbody>
+  {{ range .Data }}
+    <tr>
+      <td>
+      <p>{{ .Content }}</p>
+      <a href="/user/{{.Username}}">{{ .Username }}</a>
+      {{time .ID}}
+      </td>
+    </tr>
+  {{ end }}
+  </tbody>
+</table>
 {{ end }}

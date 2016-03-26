@@ -3,9 +3,10 @@
 <form action="/problems/{{.Data}}/submit" method="post">
   <label for="Lang">Lang:</label>
   <select id="Lang" name="Lang">
-    <option value="0" selected="selected">c++11</option>
-    <option value="1">c</option>
-    <option value="2">ghc</option>
+    <option value="0" selected="selected">c++14 (g++)</option>
+    <option value="1">c++14 (clang++)</option>
+    <option value="2">python3</option>
+    <option value="3">ghc</option>
   </select>
   <br>
   <textarea name="Content" autofocus="autofocus"></textarea>
