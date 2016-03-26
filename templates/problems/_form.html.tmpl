@@ -8,7 +8,33 @@
   <input type="text" id="Timelimit" name="Timelimit" value="{{.Data.Timelimit}}"><br>
   <label for="Memlimit">Memlimit:</label>
   <input type="text" id="Memlimit" name="Memlimit" value="{{.Data.Memlimit}}"><br>
-  <label for="TestdataFile">Testdata: (Upload a .zip archive with the structure of: testdata/1.in 1.out 2.in 2.out ...)</label>
+  <div>
+    <h3>Format of testdata archive</h3>
+    <p>
+      Should be a <code>.zip</code> archive with the structure of:
+    </p>
+<pre>
+meta.json
+testdata/
+  1.in
+  1.out
+  2.in
+  2.out
+  ...
+</pre>
+    <p>
+      Where <code>meta.json</code> contains the subtasks and number of testdata:
+    </p>
+<pre>
+{
+  "Testcase": [
+    [1],
+    [1, 2, 3]
+  ]
+}
+</pre>
+  </div>
+  <label for="TestdataFile">Testdata:</label>
   <input type="file" id="TestdataFile" name="TestdataFile"><br>
   <input type="hidden" name="Testdata" value="{{.Data.Testdata}}">
   <label for="Name">Name:</label>

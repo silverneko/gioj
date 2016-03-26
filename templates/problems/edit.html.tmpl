@@ -1,6 +1,7 @@
 {{ define "yield" }}
-<h1>Edit Problem<strong>#{{.Data.ID}}</strong></h1>
-{{ template "_form" . }}
 <a href="/problems">Problems Index</a>
 | <a href="/problems/{{.Data.ID}}">Show</a>
+
+<h1>Edit Problem<strong>#{{.Data.ID}}</strong></h1>
+{{ template "_form" . }}
 {{ end }}
