@@ -10,109 +10,154 @@ import (
   "encoding/json"
   "strconv"
   "github.com/silverneko/gioj/models"
+  "io/ioutil"
 )
 
+var judgePath string
+
 func main() {
-  log.Println("Start judge service...")
+  pid := os.Getpid()
+  pids := strconv.Itoa(pid)
+  judgePath = "/tmp/gioj-judge-" + pids + "/"
+  if err := os.MkdirAll(judgePath, 0755); err != nil {
+    log.Println(err)
+    return
+  }
+  defer os.RemoveAll(judgePath)
 
-  os.RemoveAll("/tmp/gioj-judge")
-  os.Mkdir("/tmp/gioj-judge", 0755)
-
-  bufferSize := 2
+  /* work queue buffer */
+  bufferSize := 4
   workQueue := make(chan *models.Submission, bufferSize)
 
   /* spawn two workers */
-  go worker(workQueue, 1)
-  go worker(workQueue, 2)
+  workerCount := 2
+  for i := 1; i <= workerCount; i++ {
+    go worker(workQueue, i)
+  }
+  log.Println("Start judge service...")
+  log.Println("Judge directory: ", judgePath)
+  log.Println("Worker count: ", workerCount)
 
   for {
-    db := models.DBSession{DB.Copy()}
     var submission models.Submission
+    db := models.DBSession{DB.Copy()}
     _, err := db.C("submissions").
       Find(bson.M{"verdict.result": models.QUEUED}).
       Sort("_id").
       Apply(mgo.Change{Update: bson.M{"$set": bson.M{"verdict.result": models.JUDGING}}}, &submission)
+    db.Close()
     if err == nil {
       log.Println("Recieved: ", submission.ID.Hex())
       workQueue <- &submission
     } else {
-      log.Println("Nothing to judge")
       time.Sleep(5 * time.Second)
     }
-    db.Close()
   }
 }
 
 func worker(c <-chan *models.Submission, workerId int) {
+  defer func() {
+    if err := recover(); err != nil {
+      log.Println("Worker panic: ", err)
+      log.Println("Restart worker: ", workerId)
+      go worker(c, workerId)
+    }
+  } ()
   for {
     submission := <-c
-    log.Println("Worker: ", workerId)
-    judge(submission)
+    if submission != nil {
+      /* can't be too careful */
+      log.Println("Worker: ", workerId, submission.ID.Hex())
+      judge(submission)
+    }
   }
 }
 
 func judge(submission *models.Submission) {
-  path := "/tmp/gioj-judge/" + submission.ID.Hex()
-  os.Mkdir(path, 0755)
-  filename := path + "/test.cpp"
-  f, err := os.Create(filename)
-  if err != nil {
-    log.Println("File create: ", err)
-    return
-  }
-  defer os.Remove(filename)
-  f.WriteString(submission.Content)
-  f.Close()
-
   db := models.DBSession{DB.Copy()}
   defer db.Close()
+  // Error handling
+  defer func() {
+    if err := recover(); err != nil {
+      log.Println("Judge routine panic: ", err)
+      db.C("submissions").Update(bson.M{"_id": submission.ID}, bson.M{"$set": bson.M{"verdict.result": models.ERR}})
+    }
+  } ()
 
   var problem models.Problem
-  err = db.C("problems").Find(bson.M{"_id": submission.Pid}).One(&problem)
-  if err != nil {
-    log.Println("Problem retrieve: ", err)
-    return
+  if err := db.C("problems").Find(bson.M{"_id": submission.Pid}).One(&problem); err != nil {
+    panic(err)
   }
 
-  cf, _ := websocket.NewConfig("ws://localhost:2501/judge", "http://localhost:5050")
-  ws, err := websocket.DialConfig(cf)
-  if err != nil {
-    log.Println("Ws create: ", err)
-    return
+  path := judgePath + submission.ID.Hex()
+  if err := os.Mkdir(path, 0755); err != nil {
+    panic(err)
+  }
+  defer os.RemoveAll(path)
+  filename := path + "/test.cpp"
+  if f, err := os.Create(filename); err != nil {
+    panic(err)
+  } else {
+    f.WriteString(submission.Content)
+    f.Close()
+  }
+
+  var ws *websocket.Conn
+  for {
+    var err error
+    ws, err = websocket.Dial("ws://localhost:2501/judge", "", "http://localhost:5050")
+    if err == nil {
+      break
+    }
+    time.Sleep(10 * time.Second)
   }
   defer ws.Close()
 
-  dataset := make([]int, problem.TestdataCount)
-  for i, _ := range dataset {
-    dataset[i] = i+1
-  }
-  msg, _ := json.Marshal(map[string]interface{}{
-    "chal_id": 1,  // What number is this doesn't really matter
-    "code_path": filename,
-    "res_path": "/home/silvernegi/Projects/gioj/td/" + strconv.Itoa(submission.Pid),
-    "comp_type": "g++",
-    "check_type": "diff",
-    "metadata": "",
-    "test": []map[string]interface{}{
-      {
-	"test_idx": 1,
+  res_path := os.Getenv("GOPATH") + "/src/github.com/silverneko/gioj/td/" + strconv.Itoa(problem.ID)
+  var testCases []map[string]interface{}
+  // Open readonly
+  if metaFile, err := ioutil.ReadFile(res_path + "/meta.json"); err != nil {
+    panic(err)
+  } else {
+    var testCasesData map[string][][]int
+    if err := json.Unmarshal(metaFile, &testCasesData); err != nil {
+      panic(err)
+    }
+    for i, v := range testCasesData["Testcase"] {
+      testCases = append(testCases, map[string]interface{}{
+	"test_idx": i+1,
 	"timelimit": problem.Timelimit,
 	"memlimit": problem.Memlimit * 2 << 10,
 	"metadata": map[string]interface{}{
-	  "data": dataset,
+	  "data": v,
 	},
-      },
-    },
-  })
-  ws.Write(msg)
+      })
+    }
+  }
 
+  msg, _ := json.Marshal(map[string]interface{}{
+    "chal_id": 1,  // What number is this doesn't really matter
+    "code_path": filename,
+    "res_path": res_path,
+    "comp_type": "g++",
+    "check_type": "diff",
+    "metadata": "",
+    "test": testCases,
+  })
+  if _, err := ws.Write(msg); err != nil {
+    panic(err)
+  }
   rcv := make([]byte, 2 << 20)
-  n, err := ws.Read(rcv)
-  rcv = rcv[:n]
+  if n, err := ws.Read(rcv); err != nil {
+    panic(err)
+  } else {
+    rcv = rcv[:n]
+  }
 
   var response Response
-  err = json.Unmarshal(rcv, &response)
-  log.Println(err)
+  if err := json.Unmarshal(rcv, &response); err != nil {
+    log.Println(err)
+  }
   log.Println(string(rcv))
 
   var result models.Verdict
@@ -143,10 +188,8 @@ func judge(submission *models.Submission) {
       result.Result = models.CE
   }
 
-  err = db.C("submissions").Update(bson.M{"_id": submission.ID}, bson.M{"$set": bson.M{"verdict": result}})
-  if err != nil {
-    log.Println("Judge Error: ", err)
-    return
+  if err := db.C("submissions").Update(bson.M{"_id": submission.ID}, bson.M{"$set": bson.M{"verdict": result}}); err != nil {
+    panic(err)
   }
 }
 
@@ -174,7 +217,6 @@ func init() {
   if err != nil {
     log.Fatal("mgo.Dial: ", err)
   }
-
 }
 
 const (
