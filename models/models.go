@@ -72,7 +72,6 @@ type Problem struct {
   Memlimit int
   Timelimit int
   Testdata string
-  TestdataCount int `bson:"testdatacount"`
 }
 
 type DiscussPost struct {
