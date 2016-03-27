@@ -25,25 +25,13 @@ MathJax.Hub.Config({
 </script>
 <!-- Ace editor -->
 <script src="https://cdn.jsdelivr.net/ace/1.2.3/min/ace.js" type="text/javascript" charset="utf-8"></script>
-<style>
-.editor {
-  position: relative;
-}
-</style>
-<!-- Problems quick navigate -->
-<script>
-$("#quick-search").click(function() {
-  var pid;
-  pid = $('#search-problem-id').val();
-  if (pid === "") {
-    return;
-  }
-  return window.location.href = "/problems/" + pid;
-});
-</script>
+<link rel="stylesheet" href="/assets/style.css">
+<script src="/assets/function.js" type="text/javascript"></script>
 </head>
 
 <body>
+<!-- Anything otherthan footer should be in wrapper else it'll overlap the footer -->
+<div class="wrapper">
 <div class="container">
 
 <!-- Navs -->
@@ -67,12 +55,12 @@ $("#quick-search").click(function() {
         <li><a href="/status">Status</a></li>
         <li><a href="/problems">Problems</a></li>
       </ul>
-      <div class="navbar-form navbar-left" role="search">
+      <form id="quick-problem" class="navbar-form navbar-left" role="search">
         <div class="form-group">
-          <input type="text" class="form-control" id="search-problem-id" placeholder="Enter problem ID">
+          <input type="text" class="form-control" id="quick-problem-id" placeholder="Enter problem ID">
         </div>
-        <button type="submit" class="btn btn-default" id="quick-search">Go</button>
-      </div>
+        <button type="submit" class="btn btn-default">Go</button>
+      </form>
       <ul class="nav navbar-nav navbar-right">
         <li><a href="/about">About</a></li>
         <li><a href="/user">Users</a></li>
@@ -106,6 +94,22 @@ $("#quick-search").click(function() {
 <!-- Contents -->
 {{ template "yield" . }}
 
+</div>
+<!-- "push" the footer down to the bottom -->
+<div class="push"></div>
+</div>
+
+<div class="footer">
+  <div class="container">
+    <div id="footer-text">
+      <ul class="footer-list">
+        <li><a href="/">GIOJ</a></li>
+        <li><a href="https://github.com/silverneko/gioj">Github</a></li>
+        <li><a href="/about">About</a></li>
+        <li>2016</li>
+      </ul>
+    </div>
+  </div>
 </div>
 </body>
 </html>

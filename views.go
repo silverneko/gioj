@@ -13,6 +13,7 @@ import (
 var tmpls = make(map[string]*template.Template)
 
 func init() {
+  registerTemplate("404.html")
   registerTemplate("welcome.html")
   registerTemplate("about.html")
 
@@ -86,7 +87,7 @@ func render(name string, c context.Context, w http.ResponseWriter, d interface{}
   })
   if err != nil {
     log.Println(err)
-    http.Error(w, "500: " + err.Error(), 500)
+    http.Error(w, "500", 500)
   }
 }
 

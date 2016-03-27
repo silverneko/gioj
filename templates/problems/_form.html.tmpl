@@ -61,7 +61,7 @@ testdata/
 <script>
     var textarea = $('textarea[name="Content"]').hide();
     var editor = ace.edit("editor");
-    editor.setTheme("ace/theme/monokai");
+    editor.setTheme("ace/theme/textmate");
     editor.setOptions({minLines:5,maxLines:Infinity,showPrintMargin:false,fontSize: "14pt"});
     editor.getSession().setMode("ace/mode/markdown");
     $('#problem-submit').click(function(){

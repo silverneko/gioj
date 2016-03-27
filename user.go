@@ -25,7 +25,7 @@ func UserIndexHandler(c context.Context, w http.ResponseWriter, r *http.Request)
 func UserHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
   username := pat.Param(c, "user")
   if !inRange(len(username), 3, 20) {
-    http.Error(w, "500", 500)
+    http.Redirect(w, r, "/404", 303)
     return
   }
   db := models.DBSession{DB.Copy()}
@@ -33,7 +33,7 @@ func UserHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
   var result models.User
   if err := db.C("users").Find(bson.M{"username": username}).One(&result); err != nil {
     /* username don't exist in db */
-    http.Error(w, "500", 500)
+    http.Redirect(w, r, "/404", 303)
     return
   }
   render("user/show.html", c, w, result);
@@ -43,15 +43,14 @@ func UserEditHandler(c context.Context, w http.ResponseWriter, r *http.Request) 
   username := pat.Param(c, "user")
   currentUser := CurrentUser(c)
   if !currentUser.IsAdmin() && currentUser.Username != username {
-    http.Redirect(w, r, "/", 302)
+    http.Redirect(w, r, "/404", 303)
     return
   }
   db := models.DBSession{DB.Copy()}
   defer db.Close()
   var user models.User
   if err := db.C("users").Find(bson.M{"username": username}).One(&user); err != nil {
-    log.Println("User find: ", err, username)
-    http.Error(w, "500", 500)
+    http.Redirect(w, r, "/404", 303)
     return
   }
   render("user/edit_form.html", c, w, user)
@@ -78,8 +77,7 @@ func AdminEditHandler(c context.Context, w http.ResponseWriter, r *http.Request)
   defer db.Close()
   var user models.User
   if err := db.C("users").Find(bson.M{"username": username}).One(&user); err != nil {
-    log.Println("User find: ", err, username)
-    http.Error(w, "500", 500)
+    http.Redirect(w, r, "/404", 303)
     return
   }
   user.Name = name

@@ -1,20 +1,24 @@
 {{ define "yield" }}
-<a class="btn btn-default" href="/problems">Problems Index</a>
-<a class="btn btn-default" href="/problems/{{.Data.ID}}/submit">Submit</a>
-<a class="btn btn-default" href="/problems/{{.Data.ID}}/status">Status</a>
-<a class="btn btn-default" href="/problems/{{.Data.ID}}/edit">Edit</a>
-
-<h1>{{.Data.Name}}</h1>
+<h1>
+  {{.Data.Name}}
+  <small><a href="/problems/{{.Data.ID}}/edit" aria-label="Edit">
+    <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+  </a></small>
+</h1>
+<!-- <a class="btn btn-default" href="/problems/{{.Data.ID}}/submit">Submit</a> -->
 <div>
-  Timelimit: {{.Data.Timelimit}} ms <br>
-  Memlimit: {{.Data.Memlimit}} KiB
+  <ul>
+    <li>Timelimit: {{.Data.Timelimit}} ms</li>
+    <li>Memlimit: {{.Data.Memlimit}} KiB</li>
+    <li><a href="/problems/{{.Data.ID}}/status">Problem status</a></li>
+  </ul>
 </div>
 
 <div>
   {{markdown .Data.Content}}
 </div>
 <div>
-  <a href="/user/{{.Data.AuthorName}}">{{.Data.AuthorName}}</a>
+  Last edited by: <a href="/user/{{.Data.AuthorName}}">{{.Data.AuthorName}}</a>
 </div>
 <hr>
 

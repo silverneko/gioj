@@ -1,16 +1,19 @@
 {{ define "yield" }}
 <h1>Submit Problem<strong>#{{.Data}}</strong></h1>
 <form action="/problems/{{.Data}}/submit" method="post">
-  <label for="Lang">Lang:</label>
-  <select id="Lang" name="Lang">
-    <option value="0" selected="selected">c++14 (g++)</option>
-    <option value="1">c++14 (clang++)</option>
-    <option value="2">python3</option>
-    <option value="3">ghc</option>
-  </select>
-  <br>
-  <textarea name="Content" autofocus="autofocus"></textarea>
-  <input type="submit" value="Submit">
+  <div class="form-group">
+    <select class="form-control" id="Lang" name="Lang">
+      <option value="0" selected="selected">c++14 (g++)</option>
+      <option value="1">c++14 (clang++)</option>
+      <option value="2">python3</option>
+      <option value="3">ghc</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <textarea class="form-control" rows="15" name="Content" autofocus="autofocus"></textarea>
+  </div>
+  <button type="submit" class="btn btn-default">Submit</button>
 </form>
-<a href="/problems/{{.Data}}">Back to problem</a>
+<hr>
+<a class="btn btn-default" href="/problems/{{.Data}}">Show problem</a>
 {{ end }}

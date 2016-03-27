@@ -29,14 +29,14 @@ func ProblemsHandler(c context.Context, w http.ResponseWriter, r *http.Request) 
 func ProblemHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
   pid, err := strconv.Atoi(pat.Param(c, "id"))
   if err != nil {
-    http.Error(w, "500", 500)
+    http.Redirect(w, r, "/404", 303)
     return
   }
   db := models.DBSession{DB.Copy()}
   defer db.Close()
   var problem models.Problem
   if err := db.C("problems").Find(bson.M{"_id": pid}).One(&problem); err != nil {
-    http.Error(w, "500", 500)
+    http.Redirect(w, r, "/404", 303)
     return
   }
   render("problems/show.html", c, w, problem)
@@ -79,7 +79,7 @@ func ProblemNewHandlerP(c context.Context, w http.ResponseWriter, r *http.Reques
 func ProblemEditHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
   pid, err := strconv.Atoi(pat.Param(c, "id"))
   if err != nil {
-    http.Error(w, "500", 500)
+    http.Redirect(w, r, "/404", 303)
     return
   }
   var problem models.Problem
@@ -87,7 +87,6 @@ func ProblemEditHandler(c context.Context, w http.ResponseWriter, r *http.Reques
   defer db.Close()
   if err := db.C("problems").Find(bson.M{"_id": pid}).One(&problem); err != nil {
     log.Println("Edit problem: ", err)
-    // http.Error(w, "500", 500)
     problem.ID = pid
   }
   render("problems/edit.html", c, w, problem)

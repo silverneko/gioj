@@ -1,0 +1,46 @@
+.editor {
+  position: relative;
+}
+
+* {
+  margin: 0;
+}
+
+html, body {
+  height: 100%;
+  font-size: 12pt;
+}
+
+.wrapper {
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  margin: 0 auto -4em;
+}
+
+.push {
+  height: 5em;
+}
+
+.footer {
+  height: 4em;
+  background: #272822;
+  color: #f8f8f2;
+}
+
+.footer a {
+  color: #f8f8f2;
+}
+
+#footer-text {
+  text-align: center;
+  padding-top: 1em;
+}
+
+.footer-list li {
+  display: inline-block;
+}
+.footer-list li+li {
+  margin-left: 15px;
+}
+

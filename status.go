@@ -27,7 +27,7 @@ func StatusHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
 func StatusShowHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
   sidh := pat.Param(c, "id")
   if !bson.IsObjectIdHex(sidh) {
-    http.Error(w, "500", 500)
+    http.Redirect(w, r, "/404", 303)
     return
   }
   sid := bson.ObjectIdHex(sidh)
@@ -35,7 +35,7 @@ func StatusShowHandler(c context.Context, w http.ResponseWriter, r *http.Request
   defer db.Close()
   var submission models.Submission
   if err := db.C("submissions").Find(bson.M{"_id": sid}).One(&submission); err != nil {
-    http.Error(w, "500", 500)
+    http.Redirect(w, r, "/404", 303)
     return
   }
   render("status/show.html", c, w, submission)
@@ -45,7 +45,7 @@ func StatusShowHandler(c context.Context, w http.ResponseWriter, r *http.Request
 func StatusEditHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
   sidh := pat.Param(c, "id")
   if !bson.IsObjectIdHex(sidh) {
-    http.Error(w, "500", 500)
+    http.Redirect(w, r, "/404", 303)
     return
   }
   sid := bson.ObjectIdHex(sidh)
@@ -53,7 +53,7 @@ func StatusEditHandler(c context.Context, w http.ResponseWriter, r *http.Request
   defer db.Close()
   var submission models.Submission
   if err := db.C("submissions").Find(bson.M{"_id": sid}).One(&submission); err != nil {
-    http.Error(w, "500", 500)
+    http.Redirect(w, r, "/404", 303)
     return
   }
   render("status/edit.html", c, w, submission)
@@ -63,7 +63,7 @@ func StatusEditHandler(c context.Context, w http.ResponseWriter, r *http.Request
 func StatusEditHandlerP(c context.Context, w http.ResponseWriter, r *http.Request) {
   sidh := pat.Param(c, "id")
   if !bson.IsObjectIdHex(sidh) {
-    http.Error(w, "500", 500)
+    http.Redirect(w, r, "/404", 303)
     return
   }
   sid := bson.ObjectIdHex(sidh)
@@ -86,7 +86,7 @@ func StatusEditHandlerP(c context.Context, w http.ResponseWriter, r *http.Reques
 func ProblemStatusHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
   pid, err := strconv.Atoi(pat.Param(c, "id"))
   if err != nil {
-    http.Error(w, "500", 500)
+    http.Redirect(w, r, "/404", 303)
     return
   }
   db := models.DBSession{DB.Copy()}
@@ -103,14 +103,13 @@ func ProblemStatusHandler(c context.Context, w http.ResponseWriter, r *http.Requ
 func ProblemSubmitHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
   pid, err := strconv.Atoi(pat.Param(c, "id"))
   if err != nil {
-    http.Error(w, "500", 500)
+    http.Redirect(w, r, "/404", 303)
     return
   }
   db := models.DBSession{DB.Copy()}
   defer db.Close()
-  n, _ := db.C("problems").Find(bson.M{"_id": pid}).Count()
-  if n == 0 {
-    http.Error(w, "500", 500)
+  if n, _ := db.C("problems").Find(bson.M{"_id": pid}).Count(); n == 0 {
+    http.Redirect(w, r, "/404", 303)
     return
   }
   render("status/new.html", c, w, pid)
@@ -120,14 +119,13 @@ func ProblemSubmitHandler(c context.Context, w http.ResponseWriter, r *http.Requ
 func ProblemSubmitHandlerP(c context.Context, w http.ResponseWriter, r *http.Request) {
   pid, err := strconv.Atoi(pat.Param(c, "id"))
   if err != nil {
-    http.Error(w, "500", 500)
+    http.Redirect(w, r, "/404", 303)
     return
   }
   db := models.DBSession{DB.Copy()}
   defer db.Close()
-  n, _ := db.C("problems").Find(bson.M{"_id": pid}).Count()
-  if n == 0 {
-    http.Error(w, "500", 500)
+  if n, _ := db.C("problems").Find(bson.M{"_id": pid}).Count(); n == 0 {
+    http.Redirect(w, r, "/404", 303)
     return
   }
   user := CurrentUser(c)

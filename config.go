@@ -7,7 +7,7 @@ import (
   "encoding/hex"
   "gopkg.in/mgo.v2"
   "log"
-  _ "os"
+  "os"
   "github.com/silverneko/gioj/models"
 )
 
@@ -27,6 +27,7 @@ const AuthSession = "gioj-auth"
 var cookieJar CookieJar
 
 var DB *mgo.Session
+var GIOJROOT string
 
 func init() {
   cookieJar = CookieJar{
@@ -57,6 +58,8 @@ func init() {
   if err := models.EnsureDBIndices(DB); err != nil {
     log.Fatal("mgo.EnsureIndex: ", err)
   }
+
+  GIOJROOT = os.Getenv("GOPATH") + "/src/github.com/silverneko/gioj"
 }
 
 func d(s string) []byte {

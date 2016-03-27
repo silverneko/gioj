@@ -12,6 +12,7 @@ func main() {
   mux.UseC(AuthMiddleware)
   mux.HandleFuncC(pat.Get("/"), WelcomeHandler)
   mux.HandleFuncC(pat.Get("/about"), AboutHandler)
+  mux.HandleFuncC(pat.Get("/404"), NotFoundHandler)
 
   mux.HandleFuncC(pat.Get("/login"), LoginHandler)
   mux.HandleFuncC(pat.Post("/login"), AuthHandler)
@@ -40,6 +41,12 @@ func main() {
   mux.HandleC(pat.Get("/problems/:id/status"), RequireAuth(ProblemStatusHandler))
   mux.HandleC(pat.Get("/problems/:id/submit"), RequireAuth(ProblemSubmitHandler))
   mux.HandleC(pat.Post("/problems/:id/submit"), RequireAuth(ProblemSubmitHandlerP))
+
+  /* serve static files */
+  mux.HandleFuncC(pat.Get("/assets/"), NotFoundHandler)
+  mux.Handle(pat.Get("/assets/*"), http.FileServer(http.Dir(GIOJROOT + "/public/")))
+
+  mux.HandleFuncC(pat.New("/*"), NotFoundHandler)
 
   http.Handle("/", mux)
   err := http.ListenAndServe(":4000", http.DefaultServeMux)

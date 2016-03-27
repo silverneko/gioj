@@ -1,7 +1,6 @@
 {{ define "yield" }}
-<a class="btn btn-default" href="/problems">Problems Index</a>
-<a class="btn btn-default" href="/problems/{{.Data.ID}}">Show</a>
-
 <h1>Edit Problem<strong>#{{.Data.ID}}</strong></h1>
+<a class="btn btn-default" href="/problems/{{.Data.ID}}">Show problem</a>
+
 {{ template "_form" . }}
 {{ end }}

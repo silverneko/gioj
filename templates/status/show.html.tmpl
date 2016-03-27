@@ -1,24 +1,19 @@
 {{ define "yield" }}
-<a class="btn btn-default" href="/problems/{{.Data.Pid}}">Show problem</a>
-<a class="btn btn-default" href="/problems/{{.Data.Pid}}/status">Show problem status</a>
-<a class="btn btn-default" href="/status/{{.Data.ID.Hex}}/edit">Edit</a>
 
 <h1>Submission <strong>#{{.Data.ID.Hex}}</strong></h1>
 
 <div>
-  <a class="btn btn-link" href="/user/{{.Data.Username}}">{{.Data.Username}}</a>
+  <ul>
+    <li><a href="/status/{{.Data.ID.Hex}}/edit">Edit</a></li>
+    <li>Problem: <a href="/problems/{{.Data.Pid}}">{{.Data.Pid}}</a></li>
+    <li>Username: <a href="/user/{{.Data.Username}}">{{.Data.Username}}</a></li>
+  {{with .Data.Verdict}}
+    <li>Verdict: {{humanVerdict .Result}}</li>
+    <li>Peak memory usage: {{.Memused}}</li>
+    <li>Total time usage: {{.Timeused}}</li>
+  {{end}}
+  </ul>
 </div>
-{{with .Data.Verdict}}
-<div>
-  Verdict: {{humanVerdict .Result}}
-</div>
-<div>
-  Peak memory usage: {{.Memused}}
-</div>
-<div>
-  Total time usage: {{.Timeused}}
-</div>
-{{end}}
 <div>
   <pre class="editor" id="code-view">{{.Data.Content}}
   </pre>
