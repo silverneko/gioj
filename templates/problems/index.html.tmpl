@@ -1,7 +1,22 @@
 {{ define "yield" }}
-<h1>Problems #</h1>
+<h1>Problems #{{.Data.Page}}</h1>
 
 <a class="btn btn-default" href="/problems/new">New Problem</a>
+{{with .Data}}
+<nav>
+  <ul class="pagination">
+    {{$pg := .Page}}
+    {{range $v := .Pages}}
+      {{if ne $v $pg}}
+        <li><a href="/problems?page={{$v}}">{{$v}}</a></li>
+      {{else}}
+        <li class="active"><a href="#">{{$v}} <span class="sr-only">(current)</span></a></li>
+      {{end}}
+    {{end}}
+  </ul>
+</nav>
+{{end}}
+
 <table class="table table-striped">
   <thead>
     <tr>
@@ -10,7 +25,7 @@
     </tr>
   </thead>
   <tbody>
-  {{ range .Data }}
+  {{ range .Data.Problems }}
     <tr>
       <td class="text-center">{{.ID}}</td>
       <td><a href="/problems/{{.ID}}">{{.Name}}</a></td>
@@ -18,4 +33,19 @@
   {{ end }}
   </tbody>
 </table>
+
+{{with .Data}}
+<nav>
+  <ul class="pagination">
+    {{$pg := .Page}}
+    {{range $v := .Pages}}
+      {{if ne $v $pg}}
+        <li><a href="/problems?page={{$v}}">{{$v}}</a></li>
+      {{else}}
+        <li class="active"><a href="#">{{$v}} <span class="sr-only">(current)</span></a></li>
+      {{end}}
+    {{end}}
+  </ul>
+</nav>
+{{end}}
 {{ end }}

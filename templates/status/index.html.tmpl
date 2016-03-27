@@ -1,6 +1,6 @@
 {{ define "yield" }}
 <h1>Status</h1>
-<table class="table table-striped">
+<table class="table table-hover">
   <thead>
     <tr>
       <th class="text-center col-md-1">ID</th>
@@ -15,9 +15,9 @@
   <tbody>
   {{ range .Data }}
     <tr>
-      <td><a class="btn btn-link" href="/status/{{.ID.Hex}}">{{.ID.Hex}}</a></td>
-      <td><a class="btn btn-link" href="/problems/{{.Pid}}">{{.Pid}}</a></td>
-      <td><a class="btn btn-link" href="/user/{{.Username}}">{{.Username}}<a></td>
+      <td><a href="/status/{{.ID.Hex}}">{{.ID.Hex}}</a></td>
+      <td><a href="/problems/{{.Pid}}">{{.Pid}}</a></td>
+      <td><a href="/user/{{.Username}}">{{.Username}}<a></td>
       <td>{{humanVerdict .Verdict.Result}}</td>
       <td>{{.Verdict.Timeused}}</td>
       <td>

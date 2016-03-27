@@ -16,14 +16,35 @@ import (
 
 // GET /problems
 func ProblemsHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
+  page, err := strconv.Atoi(r.FormValue("page"))
+  if err != nil || page < 1 {
+    page = 1
+  }
   db := models.DBSession{DB.Copy()}
   defer db.Close()
-  it := db.C("problems").Find(nil).Sort("_id").Limit(50).Iter()
+  var idx models.Idx
+  if err := db.C("counters").Find(bson.M{"_id": "problems"}).One(&idx); err != nil {
+    log.Println("Counter retrieve (problem): ", err)
+  }
+  var pages []int
+  for i, n := 1, (idx.Seq + 49) / 50; i <= n; i++ {
+    pages = append(pages, i)
+  }
+
+  it := db.C("problems").Find(nil).Sort("_id").Skip((page-1)*50).Limit(50).Iter()
   var problems []models.Problem
   if err := it.All(&problems); err != nil {
     log.Println("Problems index: ", err)
   }
-  render("problems/index.html", c, w, problems)
+  render("problems/index.html", c, w, struct{
+    Problems []models.Problem
+    Page int
+    Pages []int
+  }{
+    problems,
+    page,
+    pages,
+  })
 }
 // GET /problems/:id
 func ProblemHandler(c context.Context, w http.ResponseWriter, r *http.Request) {
